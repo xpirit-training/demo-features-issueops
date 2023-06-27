@@ -15,11 +15,25 @@ body:
     description: Why do you need the repository and what is it used for?
   validations:
     required: true
+- type: dropdown
+  attributes:
+    label: What is language of the repository?
+    options:
+      - C#
+      - Java
+      - Typescript
+      - Powershell
+      - Python
+      - Mixed
+      - Other
+  validations:
+    required: true
+
 - type: checkboxes
   attributes:
     label: Productive code
     description: Will the repository contain productive source code?
     options:
-    - label: Yes
-    - label: No
+    - label: "Yes"
+    - label: "No"
       required: true
