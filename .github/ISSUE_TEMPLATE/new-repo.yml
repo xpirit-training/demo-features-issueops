@@ -1,0 +1,25 @@
+name: 🐞 New Repository
+description: Request a new Repository in your organization.
+title: "[Repo] <name>"
+labels: [new-repo]
+body:
+- type: input
+  attributes:
+    label: Responsible employee
+    description: Who is the responsible employee for the repository?
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Reason
+    description: Why do you need the repository and what is it used for?
+  validations:
+    required: true
+- type: checkboxes
+  attributes:
+    label: Productive code
+    description: Will the repository contain productive source code?
+    options:
+    - label: Yes
+    - label: No
+      required: true
