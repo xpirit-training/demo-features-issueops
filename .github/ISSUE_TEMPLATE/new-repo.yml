@@ -34,6 +34,6 @@ body:
     label: Productive code
     description: Will the repository contain productive source code?
     options:
-      - label: Yes
+      - label: "Yes"
   validations:
       required: true
