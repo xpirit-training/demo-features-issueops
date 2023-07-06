@@ -1,4 +1,4 @@
-name: Create new repo based on issue
+name: Create new repo based on a repo request 
 
 on:
  issues:
@@ -6,6 +6,7 @@ on:
 
 jobs:
   create-repos-from-issue:
+    if: ${{ github.event.label.name == 'repo-request' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.3.0
@@ -20,7 +21,7 @@ jobs:
       - name: Show parsed data JSON
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.ISSUEOPS_PAT }}
         run: |
           name=$(echo '${{ steps.parse.outputs.payload }}' | jq -r .Name)
           gh repo create $name --public
