@@ -3,6 +3,10 @@ name: Create new repo based on a repo request
 on:
  issues:
     types: [labeled]
+    
+permissions:
+  contents: read
+  issues: write
 
 jobs:
   create-repos-from-issue:
