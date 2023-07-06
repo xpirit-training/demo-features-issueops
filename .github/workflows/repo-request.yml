@@ -18,10 +18,18 @@ jobs:
           separator: '###'
           label_marker_start: '>>'
           label_marker_end: '<<'
-      - name: Show parsed data JSON
+      - name: Create repo
+        id: create-repo
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.ISSUEOPS_PAT }}
         run: |
           name=$(echo '${{ steps.parse.outputs.payload }}' | jq -r .Name)
-          gh repo create $name --public
+          url=gh repo create xpirit-training/$name --public
+          echo "repo_url=$url" >> "$GITHUB_OUTPUT"
+      - name: Create comment and close issue
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue close -r Completed -c "@${{ github.event.issue.author }} your repository was created and is now accessible here: $ {{ steps.create-repo.outputs.repo_url }}"
