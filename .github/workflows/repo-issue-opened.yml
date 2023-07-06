@@ -22,6 +22,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "${{ steps.parse.outputs.payload }}"
-          name="${{ steps.parse.outputs.payload.Name }}"
-          gh repo create $name --public
+          echo "${{ steps.parse.outputs.payload.Name }}"
+          gh repo create ${{ steps.parse.outputs.payload.Name }} --public
