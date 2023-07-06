@@ -1,4 +1,4 @@
-name: Create new repo based on a repo request 
+name: Create new repo for repo request 
 
 on:
  issues:
@@ -31,13 +31,13 @@ jobs:
           name=$(echo '${{ steps.parse.outputs.payload }}' | jq -r .Name)
           url=$(gh repo create xpirit-training/$name --public)
           echo "repo_url=$url" >> "$GITHUB_OUTPUT"
-      - name: Create comment and close issue
+      - name: Create comment and close issue on success
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.author }} your repository was created and is now accessible here: $ {{ steps.create-repo.outputs.repo_url }}"
-      - name: Create comment and close issue
+      - name: Create comment on failure
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
