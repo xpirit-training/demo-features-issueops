@@ -1,0 +1,11 @@
+name: Create new repo based on issue
+
+on:
+  issues: [opened]
+  
+jobs:
+  create-repos-from-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - 
