@@ -1,29 +1,29 @@
-name: 🐞 New Repository
+name: Repo request
 description: Request a new Repository in your organization.
 title: "[Repo-Request] <name>"
 labels: [new-repo]
 body:
 - type: input
   attributes:
-    label: ">> Name <<"
+    label: ">>Name<<"
     description: Name of the repository
   validations:
     required: true
 - type: input
   attributes:
-    label: ">> Owner <<"
+    label: ">>Owner<<"
     description: Who is the owner of the repository? Please use the GitHub handle!
   validations:
     required: true
 - type: textarea
   attributes:
-    label: ">> Reason <<"
+    label: ">>Reason<<"
     description: Why do you need the repository and what is it used for?
   validations:
     required: true
 - type: dropdown
   attributes:
-    label: ">> Language <<"
+    label: ">>Language<<"
     options:
       - C#
       - Java
@@ -36,7 +36,7 @@ body:
     required: true
 - type: checkboxes
   attributes:
-    label: ">> Productive <<"
+    label: ">>Productive<<"
     description: Will the repository contain productive source code?
     options:
       - label: "Yes"
