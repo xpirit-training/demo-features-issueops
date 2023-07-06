@@ -1,7 +1,7 @@
 name: Repo request
 description: Request a new Repository in your organization.
-title: "[Repo-Request] <name>"
-labels: [new-repo]
+title: "[Repo Request] "
+labels: [repo-request]
 body:
 - type: input
   attributes:
