@@ -25,7 +25,7 @@ jobs:
           GH_TOKEN: ${{ secrets.ISSUEOPS_PAT }}
         run: |
           name=$(echo '${{ steps.parse.outputs.payload }}' | jq -r .Name)
-          url=gh repo create xpirit-training/$name --public
+          url=$(gh repo create xpirit-training/$name --public)
           echo "repo_url=$url" >> "$GITHUB_OUTPUT"
       - name: Create comment and close issue
         if: success()
