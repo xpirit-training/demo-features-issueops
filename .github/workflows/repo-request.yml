@@ -36,7 +36,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          
+          echo "${{ toJSON(github) }}"
           gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.actor }} your repository was created and is now accessible here: ${{ steps.create-repo.outputs.repo_url }}"
       - name: Create comment on failure
         if: failure()
