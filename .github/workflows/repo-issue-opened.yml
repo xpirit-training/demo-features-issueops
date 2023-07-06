@@ -2,25 +2,22 @@ name: Create new repo based on issue
 
 on:
   issues:
-    types: [opened, labeled]
+    types: [labeled]
   
 jobs:
   create-repos-from-issue:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.3.0
-      - name: Run Issue form parser
+      - name: Issue form parser
         id: parse
-        uses: peter-murray/issue-forms-body-parser@v2.0.0
+        uses: onmax/issue-form-parser@v1.4
         with:
-          issue_id: ${{ github.event.issue.number }}
-          separator: '###'
-          label_marker_start: ''
-          label_marker_end: ''
+          issue_number: ${{ github.event.issue.number }}
       - name: Show parsed data JSON
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          name="${{ steps.parse.outputs.payload.name }}"
+          name='${{ fromJson(steps.parse.outputs.payload)["Name"] }}'
           gh repo create $name
