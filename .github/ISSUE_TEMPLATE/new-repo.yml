@@ -1,12 +1,18 @@
 name: 🐞 New Repository
 description: Request a new Repository in your organization.
-title: "[Repo] <name>"
+title: "[Repo-Request] <name>"
 labels: [new-repo]
 body:
 - type: input
   attributes:
-    label: Responsible employee
-    description: Who is the responsible employee for the repository?
+    label: Name
+    description: Name of the repository
+  validations:
+    required: true
+- type: input
+  attributes:
+    label: Owner
+    description: Who is the owner of the repository? Please use the GitHub handle!
   validations:
     required: true
 - type: textarea
@@ -28,10 +34,9 @@ body:
       - Other
   validations:
     required: true
-
 - type: checkboxes
   attributes:
-    label: Productive code
+    label: Productive
     description: Will the repository contain productive source code?
     options:
       - label: "Yes"
