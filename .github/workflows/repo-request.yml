@@ -36,11 +36,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.author }} your repository was created and is now accessible here: $ {{ steps.create-repo.outputs.repo_url }}"
+          
+          gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.actor }} your repository was created and is now accessible here: ${{ steps.create-repo.outputs.repo_url }}"
       - name: Create comment on failure
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.author }} there were some problems provisioning your repo. Please reach out to your org owner for additional help. Thank you."  
+          gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.actor }} there were some problems provisioning your repo. Please reach out to your org owner for additional help. Thank you."  
           
