@@ -22,11 +22,18 @@ jobs:
           separator: '###'
           label_marker_start: '>>'
           label_marker_end: '<<'
+      - name: Get Token
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ vars.GH_APP_ID }}
+          application_private_key: ${{ secrets.GH_APP_KEY }}
+          organization: ${{ vars.ORGANIZATION }}
       - name: Create repo
         id: create-repo
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.ISSUEOPS_PAT }}
+          GH_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
         run: |
           name=$(echo '${{ steps.parse.outputs.payload }}' | jq -r .Name)
           url=$(gh repo create xpirit-training/$name --public)
