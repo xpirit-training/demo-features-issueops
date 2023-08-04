@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - '.github/org/.github/org/*'
+      - '.github/org/.github/org/**'
 
 permissions:
   contents: write
@@ -44,13 +44,13 @@ jobs:
         with:
           yamllint_file_or_dir: ${{ env.ISSUE_TEMPLATE_FILE }}
           yamllint_strict: true
-      #- name: Commit Changes
-      #  env: 
-      #    CI_COMMIT_MESSAGE: Update Issue Template File
-      #    CI_COMMIT_AUTHOR: Continuous Integration
-      #  run: |
-      #    git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
-      #    git config --global user.email "username@users.noreply.github.com"
-      #    git add $ISSUE_TEMPLATE_FILE
-      #    git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
-      #    git push
+      - name: Commit Changes
+        env: 
+          CI_COMMIT_MESSAGE: "chore(org): Update Issue Template File"
+          CI_COMMIT_AUTHOR: Continuous Integration
+        run: |
+          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+          git config --global user.email "CI@users.noreply.github.com"
+          git add $ISSUE_TEMPLATE_FILE
+          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
+          git push
