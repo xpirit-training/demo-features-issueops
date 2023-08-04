@@ -1,0 +1,65 @@
+name: Update the 'Repo-Request' issue template
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/org/.github/org/*'
+
+permissions:
+  contents: write
+
+env:
+  ORG_FILE: .github/org/org-structure.yml
+  ISSUE_TEMPLATE_FILE: .github/ISSUE_TEMPLATE/repo-request.yml
+
+jobs:
+  update-orgs:
+    runs-on: ubuntu-latest    
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - name: Get Companies
+        shell: bash
+        run: |
+          echo COMPANIES=$(find .github/org/companies -mindepth 1 -maxdepth 1 -type d -exec sh -c 'basename "$0" | yq [.]' {} \; | sort) >> "$GITHUB_ENV"
+      - name: Get Teams
+        shell: bash
+        run: |
+          echo TEAMS=$(find .github/org/companies/*/teams -mindepth 1 -maxdepth 1 -type d -exec sh -c 'basename "$0" | yq [.]' {} \; | sort) >> "$GITHUB_ENV"
+      - name: Get Projects
+        shell: bash
+        run: |
+          echo PROJECTS=$(find .github/org/companies/*/teams/*/projects -mindepth 1 -maxdepth 1 -type d -exec sh -c 'basename "$0" | yq [.]' {} \; | sort) >> "$GITHUB_ENV"
+      - name: Update Companies
+        shell: bash
+        run: |
+          yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Company") | .attributes.options) |=env(COMPANIES)'
+          $ISSUE_TEMPLATE_FILE
+      - name: Update Teams
+        shell: bash
+        run: |
+          yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Team") | .attributes.options) |=env(TEAMS)'
+          $ISSUE_TEMPLATE_FILE
+      - name: Update Projects
+        shell: bash
+        run: |
+          yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Project") | .attributes.options) |=env(PROJECTS)'
+          $ISSUE_TEMPLATE_FILE
+      - name: Display File
+        shell: bash
+        run: cat $ISSUE_TEMPLATE_FILE
+      - name: 'Yamllint'
+        uses: karancode/yamllint-github-action@master
+        with:
+          yamllint_file_or_dir: $ISSUE_TEMPLATE_FILE
+          yamllint_strict: true
+      #- name: Commit Changes
+      #  env: 
+      #    CI_COMMIT_MESSAGE: Update Issue Template File
+      #    CI_COMMIT_AUTHOR: Continuous Integration
+      #  run: |
+      #    git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+      #    git config --global user.email "username@users.noreply.github.com"
+      #    git add $ISSUE_TEMPLATE_FILE
+      #    git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
+      #    git push

@@ -3,42 +3,27 @@ description: Request a new Repository in your organization.
 title: "[Repo Request] "
 labels: [repo-request]
 body:
-- type: input
-  attributes:
-    label: ">>Name<<"
-    description: Name of the repository
-  validations:
-    required: true
-- type: input
-  attributes:
-    label: ">>Owner<<"
-    description: Who is the owner of the repository? Please use the GitHub handle!
-  validations:
-    required: true
-- type: textarea
-  attributes:
-    label: ">>Reason<<"
-    description: Why do you need the repository and what is it used for?
-  validations:
-    required: true
-- type: dropdown
-  attributes:
-    label: ">>Language<<"
-    options:
-      - C#
-      - Java
-      - Typescript
-      - Powershell
-      - Python
-      - Mixed
-      - Other
-  validations:
-    required: true
-- type: checkboxes
-  attributes:
-    label: ">>Productive<<"
-    description: Will the repository contain productive source code?
-    options:
-      - label: "Yes"
-  validations:
+  - type: input
+    attributes:
+      label: Name
+      description: Name of the repository
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Company
+      options: []
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Team
+      options: []
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Project
+      options: []
+    validations:
       required: true
