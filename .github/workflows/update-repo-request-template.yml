@@ -14,35 +14,26 @@ env:
   ISSUE_TEMPLATE_FILE: .github/ISSUE_TEMPLATE/repo-request.yml
 
 jobs:
-  update-orgs:
+  update-org:
     runs-on: ubuntu-latest    
     steps:
       - uses: actions/checkout@v3.3.0
-      - name: Get Companies
-        shell: bash
-        run: |
-          echo COMPANIES=$(find .github/org/companies -mindepth 1 -maxdepth 1 -type d -exec sh -c 'basename "$0" | yq [.]' {} \; | sort) >> "$GITHUB_ENV"
-      - name: Get Teams
-        shell: bash
-        run: |
-          echo TEAMS=$(find .github/org/companies/*/teams -mindepth 1 -maxdepth 1 -type d -exec sh -c 'basename "$0" | yq [.]' {} \; | sort) >> "$GITHUB_ENV"
-      - name: Get Projects
-        shell: bash
-        run: |
-          echo PROJECTS=$(find .github/org/companies/*/teams/*/projects -mindepth 1 -maxdepth 1 -type d -exec sh -c 'basename "$0" | yq [.]' {} \; | sort) >> "$GITHUB_ENV"
       - name: Update Companies
         shell: bash
-        run: |
+        run: >-
+          COMPANIES=$(find .github/org/companies -mindepth 1 -maxdepth 1 -type d -exec sh -c 'basename "$0" | yq [.]' {} \; | sort)
           yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Company") | .attributes.options) |=env(COMPANIES)'
           $ISSUE_TEMPLATE_FILE
       - name: Update Teams
         shell: bash
-        run: |
+        run: >-
+          TEAMS=$(find .github/org/companies/*/teams -mindepth 1 -maxdepth 1 -type d -exec sh -c 'basename "$0" | yq [.]' {} \; | sort)
           yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Team") | .attributes.options) |=env(TEAMS)'
           $ISSUE_TEMPLATE_FILE
       - name: Update Projects
         shell: bash
-        run: |
+        run: >-
+          PROJECTS=$(find .github/org/companies/*/teams/*/projects -mindepth 1 -maxdepth 1 -type d -exec sh -c 'basename "$0" | yq [.]' {} \; | sort)
           yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Project") | .attributes.options) |=env(PROJECTS)'
           $ISSUE_TEMPLATE_FILE
       - name: Display File
@@ -51,7 +42,7 @@ jobs:
       - name: 'Yamllint'
         uses: karancode/yamllint-github-action@master
         with:
-          yamllint_file_or_dir: $ISSUE_TEMPLATE_FILE
+          yamllint_file_or_dir: ${{ env.ISSUE_TEMPLATE_FILE }}
           yamllint_strict: true
       #- name: Commit Changes
       #  env: 
