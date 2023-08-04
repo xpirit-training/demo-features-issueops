@@ -22,6 +22,7 @@ body:
     attributes:
       label: Team
       options:
+        - MeAndOthers
         - MeOnly
         - Team 1
         - Team 2
@@ -37,5 +38,6 @@ body:
         - project 4
         - project 5
         - project 6
+        - project 7
     validations:
       required: true
