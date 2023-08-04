@@ -13,18 +13,29 @@ body:
   - type: dropdown
     attributes:
       label: Company
-      options: []
+      options:
+        - MariBo
+        - Xpirit
     validations:
       required: true
   - type: dropdown
     attributes:
       label: Team
-      options: []
+      options:
+        - MeOnly
+        - Team 1
+        - Team 2
     validations:
       required: true
   - type: dropdown
     attributes:
       label: Project
-      options: []
+      options:
+        - project 1
+        - project 2
+        - project 3
+        - project 4
+        - project 5
+        - project 6
     validations:
       required: true
