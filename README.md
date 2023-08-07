@@ -25,7 +25,7 @@ REPO=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}
 
 ## yq
 
-### replace companies, teams & projects
+### Replace companies, teams & projects
 
 testing:
 
