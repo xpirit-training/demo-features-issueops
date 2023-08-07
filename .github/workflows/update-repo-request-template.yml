@@ -20,38 +20,31 @@ jobs:
     steps:
       - uses: actions/checkout@v3.3.0
       - name: Get Companies
-        shell: bash
         run: >-
           find .github/org/companies -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1") \($(yq '.number' "$1"/metadata.yml)\)' sh {} \; | sort > companies
       - name: Get Teams
-        shell: bash
         run: >-
           find .github/org/companies/*/teams -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(yq '.id' "$1"/metadata.yml)-$(basename "$1")' sh {} \; | sort > teams
       - name: Get Projects
-        shell: bash
         run: >-
           find .github/org/companies/*/teams/*/projects -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1")' sh {} \; | sort > projects
       - name: Update Companies
-        shell: bash
         run: >-
           COMPANIES=$(cat companies)
           yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Company") | .attributes.options) |=env(COMPANIES)'
           $ISSUE_TEMPLATE_FILE
       - name: Update Teams
-        shell: bash
         run: >-
           TEAMS=$(cat teams)
           yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Team") | .attributes.options) |=env(TEAMS)'
           $ISSUE_TEMPLATE_FILE
       - name: Update Projects
-        shell: bash
         run: >-
           PROJECTS=$(cat projects)
           yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Project") | .attributes.options) |=env(PROJECTS)'
           $ISSUE_TEMPLATE_FILE
       - name: Determine Changes
         id: change-detection
-        shell: bash
         run: |
           if (git diff --quiet .github/ISSUE_TEMPLATE/repo-request.yml)
           then 
@@ -61,7 +54,6 @@ jobs:
           fi
       - name: Display File
         if: ${{ steps.change-detection.outputs.changed == 'true' }}
-        shell: bash
         run: cat $ISSUE_TEMPLATE_FILE
       - name: 'Yamllint'
         if: ${{ steps.change-detection.outputs.changed == 'true' }}
