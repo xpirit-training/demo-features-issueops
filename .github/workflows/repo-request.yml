@@ -14,16 +14,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.3.0
-      - name: Run Issue form parser
+      - name: Issue Forms Body Parser
         id: parse
-        uses: peter-murray/issue-forms-body-parser@v2.0.0
-        with:
-          issue_id: ${{ github.event.issue.number }}
-          separator: '###'
-          label_marker_start: '>>'
-          label_marker_end: '<<'
+        uses: zentered/issue-forms-body-parser@v2.0.0
+      - name: Get Repo Name
+        id: generate-repo-name
+        shell: bash
+        run: |
+          COMPANY=$(jq -r '.Company' ${{ steps.parse.outputs.data }} | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')    
+          TEAM=$(jq -r '.Team' ${{ steps.parse.outputs.data }} | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          PROJECT=$(jq -r '.Project' ${{ steps.parse.outputs.data }} | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          RNAME=$(jq -r '.Name' ${{ steps.parse.outputs.data }} | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          echo "name=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}" >> "$GITHUB_OUTPUT"
+      - name: Validate Repo Name
+        shell: bash
+        env:
+          REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
+        run: |
+          # shall not be empty
+          if [ -z $REPO_NAME ]; then exit 1; fi
+          # shall be alphanumeric and minus only
+          if [[ "$REPO" =~ [^\-a-zA-Z0-9] ]]; then exit 1; fi
+          # shall not start with minus
+          if [[ "$REPO" == -* ]]; then exit 1; fi
+          # shall not end with minus
+          if [[ "$REPO" == *- ]]; then exit 1; fi
       - name: Get Token
-        id: get_workflow_token
+        id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
         with:
           application_id: ${{ vars.GH_APP_ID }}
@@ -33,10 +50,10 @@ jobs:
         id: create-repo
         shell: bash
         env:
-          GH_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+          GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
+          REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
         run: |
-          name=$(echo '${{ steps.parse.outputs.payload }}' | jq -r .Name)
-          url=$(gh repo create xpirit-training/$name --public)
+          url=$(gh repo create xpirit-training/${{ env.REPO_NAME }} --public)
           echo "repo_url=$url" >> "$GITHUB_OUTPUT"
       - name: Create comment and close issue on success
         if: success()
