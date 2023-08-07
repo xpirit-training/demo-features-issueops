@@ -1,6 +1,6 @@
 # dev
-companies
-teams
-projects
-tmp
-tmp_out
+/companies
+/teams
+/projects
+/tmp
+/tmp_out
