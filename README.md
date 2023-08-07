@@ -5,11 +5,11 @@ Custom ISSUE_TEMPLATE for creating new repositories via issue forms.
 Workflow for auto provisioning new repositories based on issues and administer them.
 
 
-# queries
+# Queries
 
 ## jq
 
-### create repo name
+### Create repo name
 
 ```
 COMPANY=$(jq -r '.Company' [issue-body] | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
