@@ -14,7 +14,6 @@ body:
     attributes:
       label: Company
       options:
-        - MariBo (404)
         - Xpirit (1337)
     validations:
       required: true
@@ -22,8 +21,6 @@ body:
     attributes:
       label: Team
       options:
-        - ME-MeOnly
-        - MEOT-MeAndOthers
         - T1-Team 1
         - T2-Team 2
     validations:
@@ -36,8 +33,5 @@ body:
         - project 2
         - project 3
         - project 4
-        - project 5
-        - project 6
-        - project 7
     validations:
       required: true
