@@ -1,15 +1,15 @@
-# Demo repository for IssueOps
+# Demo Repository for IssueOps
 
 Custom ISSUE_TEMPLATE for creating new repositories via issue forms.
 
 Workflow for auto provisioning new repositories based on issues and administer them.
 
 
-# Queries
+## Queries
 
-## jq
+### jq
 
-### Create repo name
+#### Create repo name
 
 ```
 COMPANY=$(jq -r '.Company' [issue-body] | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
@@ -23,9 +23,9 @@ RNAME=$(jq -r '.Name' [issue-body] | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
 REPO=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}
 ```
 
-## yq
+### yq
 
-### Replace companies, teams & projects
+#### Replace companies, teams & projects
 
 testing:
 
