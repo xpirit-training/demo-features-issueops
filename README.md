@@ -4,6 +4,38 @@ Custom ISSUE_TEMPLATE for creating new repositories via issue forms.
 
 Workflow for auto provisioning new repositories based on issues and administer them.
 
+## Workflows
+
+### `repo-request.yml`
+
+Workflow that is triggered by submitted repository request issue.
+
+### `update-repo-request-template.yml`
+
+Workflow that is triggered by any changes in the `.github/org` folder. The workflow reads the contents from the folder expecting the following structure:
+
+```
+org/
+├── company-1/
+│   ├── metadata.yml
+│   └── teams/
+│       └── team-1/
+│           ├── metadata.yml
+│           └── projects/
+│               ├── project-1/
+│               └── project-2/
+└── company-n/
+    ├── metadata.yml
+    └── teams/
+        └── team-n/
+            ├── metadata.yml
+            └── projects/
+                └── project-n/
+```
+
+The `org` is defined of a set of `company` which has a set of `teams`. Each team has a set of `projects`. In order to define so general properties on `company` as well as `team` level, each of those has a `metadata.yml` This file holds properties such as team manager oder team identifier.
+
+Any change to the structure will trigger the workflow and populate the issue template.
 
 ## Queries
 
