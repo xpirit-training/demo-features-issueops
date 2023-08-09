@@ -44,13 +44,13 @@ Any change to the structure will trigger the workflow and populate the issue tem
 #### Create repo name
 
 ```
-COMPANY=$(jq -r '.Company' [issue-body] | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+COMPANY=$(cat [issue-body] | jq -r '.Company' | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
 
-TEAM=$(jq -r '.Team' [issue-body] | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+TEAM=$(cat [issue-body] | jq -r '.Team' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
 
-PROJECT=$(jq -r '.Project' [issue-body] | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+PROJECT=$(cat [issue-body] | jq -r '.Project' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
 
-RNAME=$(jq -r '.Name' [issue-body] | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+RNAME=$(cat [issue-body] | jq -r '.Name' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
 
 REPO=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}
 ```
