@@ -20,10 +20,10 @@ jobs:
       - name: Get Repo Name
         id: generate-repo-name
         run: |
-          COMPANY=$(jq -r '.Company' ${{ steps.parse.outputs.data }} | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')    
-          TEAM=$(jq -r '.Team' ${{ steps.parse.outputs.data }} | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          PROJECT=$(jq -r '.Project' ${{ steps.parse.outputs.data }} | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          RNAME=$(jq -r '.Name' ${{ steps.parse.outputs.data }} | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          COMPANY=$(echo ${{ steps.parse.outputs.data }} | jq -r '.Company'  | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')    
+          TEAM=$(echo ${{ steps.parse.outputs.data }} | jq -r '.Team' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          PROJECT=$(echo ${{ steps.parse.outputs.data }} | jq -r '.Project' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          RNAME=$(echo ${{ steps.parse.outputs.data }} | jq -r '.Name' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
           echo "name=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}" >> "$GITHUB_OUTPUT"
       - name: Validate Repo Name
         env:
