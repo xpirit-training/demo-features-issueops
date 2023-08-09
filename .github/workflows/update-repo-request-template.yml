@@ -4,14 +4,13 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - '.github/org/**'
+      - './org/**'
       - '.github/workflows/update-repo-request-template.yml'
 
 permissions:
   contents: write
 
 env:
-  ORG_FILE: .github/org/org-structure.yml
   ISSUE_TEMPLATE_FILE: .github/ISSUE_TEMPLATE/repo-request.yml
 
 jobs:
@@ -21,13 +20,13 @@ jobs:
       - uses: actions/checkout@v3.3.0
       - name: Get Companies
         run: >-
-          find .github/org/companies -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1") \($(yq '.number' "$1"/metadata.yml)\)' sh {} \; | sort > companies
+          find ./org/companies -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1") \($(yq '.number' "$1"/metadata.yml)\)' sh {} \; | sort > companies
       - name: Get Teams
         run: >-
-          find .github/org/companies/*/teams -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(yq '.id' "$1"/metadata.yml)-$(basename "$1")' sh {} \; | sort > teams
+          find ./org/companies/*/teams -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(yq '.id' "$1"/metadata.yml)-$(basename "$1")' sh {} \; | sort > teams
       - name: Get Projects
         run: >-
-          find .github/org/companies/*/teams/*/projects -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1")' sh {} \; | sort > projects
+          find ./org/companies/*/teams/*/projects -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1")' sh {} \; | sort > projects
       - name: Update Companies
         run: >-
           COMPANIES=$(cat companies)
