@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - './org/**'
+      - './templates/languages/**'
       - '.github/workflows/update-repo-request-template.yml'
 
 permissions:
@@ -27,6 +28,9 @@ jobs:
       - name: Get Projects
         run: >-
           find ./org/companies/*/teams/*/projects -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1")' sh {} \; | sort > projects
+      - name: Get Languages
+        run: >-
+          find ./templates/languages -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1")' sh {} \; | sort > languages            
       - name: Update Companies
         run: >-
           COMPANIES=$(cat companies)
@@ -41,6 +45,11 @@ jobs:
         run: >-
           PROJECTS=$(cat projects)
           yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Project") | .attributes.options) |=env(PROJECTS)'
+          $ISSUE_TEMPLATE_FILE
+      - name: Update Languages
+        run: >-
+          LANGUAGES=$(cat languages)
+          yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Language") | .attributes.options) |=env(LANGUAGES)'
           $ISSUE_TEMPLATE_FILE
       - name: Determine Changes
         id: change-detection
