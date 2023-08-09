@@ -4,6 +4,13 @@ description: Request a new Repository in your organization.
 title: "[Repo Request] "
 labels: [repo-request]
 body:
+  - type: dropdown
+    attributes:
+      label: Visibility
+      options:
+        - public
+        - internal
+        - private
   - type: input
     attributes:
       label: Name

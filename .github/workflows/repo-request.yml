@@ -19,12 +19,20 @@ jobs:
         uses: zentered/issue-forms-body-parser@v2.0.0
       - name: Get Repo Name
         id: generate-repo-name
+        env:
+          JSON: ${{ steps.parse.outputs.data }}
         run: |
-          COMPANY=$(echo ${{ steps.parse.outputs.data }} | jq -r '.Company'  | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')    
-          TEAM=$(echo ${{ steps.parse.outputs.data }} | jq -r '.Team' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          PROJECT=$(echo ${{ steps.parse.outputs.data }} | jq -r '.Project' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          RNAME=$(echo ${{ steps.parse.outputs.data }} | jq -r '.Name' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          COMPANY=$(echo $JSON | jq -r '.Company'  | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')    
+          TEAM=$(echo $JSON | jq -r '.Team' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          PROJECT=$(echo $JSON | jq -r '.Project' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          RNAME=$(echo $JSON | jq -r '.Name' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
           echo "name=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}" >> "$GITHUB_OUTPUT"
+      - name: Get Attrbutes
+        id: get-attributes
+        env:
+          JSON: ${{ steps.parse.outputs.data }}
+        run: |
+          echo "visibility=$(echo $JSON | jq -r '.Visibility')" >> "$GITHUB_OUTPUT"
       - name: Validate Repo Name
         env:
           REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
@@ -49,8 +57,9 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
           REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
+          VISIBILITY: ${{ steps.get-attributes.outputs.visibility }}
         run: |
-          url=$(gh repo create xpirit-training/${{ env.REPO_NAME }} --public)
+          url=$(gh repo create xpirit-training/$REPO_NAME --$VISIBILITY)
           echo "repo_url=$url" >> "$GITHUB_OUTPUT"
       - name: Create comment and close issue on success
         if: success()
