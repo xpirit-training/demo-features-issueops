@@ -49,6 +49,9 @@ body:
   - type: dropdown
     attributes:
       label: Language
-      options: []
+      options:
+        - c#
+        - python
+        - terraform
     validations:
       required: true
