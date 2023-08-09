@@ -1,26 +1,48 @@
 name: Create new repo for repo request 
 
 on:
- issues:
+  issues:
     types: [labeled]
-    
+  workflow_dispatch:
+    inputs:
+      json:
+        description: 'JSON'
+        required: true
+        type: string
+
 permissions:
   contents: read
   issues: write
 
 jobs:
+  provide-json:
+    name: "Provide json data"
+    runs-on: ubuntu-latest
+    outputs:
+      json: ${{ steps.create-output.outputs.json }}
+    steps:      
+      - name: Issue Forms Body Parser
+        if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
+        id: parse
+        uses: zentered/issue-forms-body-parser@v2.0.0
+      - name: Create Output
+        id: create-output
+        run: |
+          if [[ ! -z ${{ steps.parse.outputs.data }} ]]
+            echo "json=${{ steps.parse.outputs.data }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "json=${{ github.event.inputs.json }}" >> "$GITHUB_OUTPUT"
+          fi
   create-repos-from-issue:
-    if: ${{ github.event.label.name == 'repo-request' }}
+    name: "Create Repo"
+    needs: provide-json
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.3.0
-      - name: Issue Forms Body Parser
-        id: parse
-        uses: zentered/issue-forms-body-parser@v2.0.0
       - name: Get Repo Name
         id: generate-repo-name
         env:
-          JSON: ${{ steps.parse.outputs.data }}
+          JSON: ${{ needs.provide-json.outputs.json }}
         run: |
           COMPANY=$(echo $JSON | jq -r '.Company'  | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')    
           TEAM=$(echo $JSON | jq -r '.Team' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
@@ -30,9 +52,10 @@ jobs:
       - name: Get Attrbutes
         id: get-attributes
         env:
-          JSON: ${{ steps.parse.outputs.data }}
+          JSON: ${{ needs.provide-json.outputs.json }}
         run: |
           echo "visibility=$(echo $JSON | jq -r '.Visibility')" >> "$GITHUB_OUTPUT"
+          echo "language=$(echo $JSON | jq -r '.Language')" >> "$GITHUB_OUTPUT"
       - name: Validate Repo Name
         env:
           REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
