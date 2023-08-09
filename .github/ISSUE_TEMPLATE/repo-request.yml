@@ -13,18 +13,31 @@ body:
   - type: dropdown
     attributes:
       label: Company
-      options: []
+      options:
+        - MariBo GmbH (404)
+        - Xpirit (1337)
     validations:
       required: true
   - type: dropdown
     attributes:
       label: Team
-      options: []
+      options:
+        - ME-MeOnly
+        - MEOT-MeAndOthers
+        - T1-Team 1
+        - T2-Team 2
     validations:
       required: true
   - type: dropdown
     attributes:
       label: Project
-      options: []
+      options:
+        - project 1
+        - project 2
+        - project 3
+        - project 4
+        - project 5
+        - project 6
+        - project 7
     validations:
       required: true
