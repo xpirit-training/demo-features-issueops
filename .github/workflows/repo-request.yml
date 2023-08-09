@@ -1,4 +1,4 @@
-name: Create new repo for repo request 
+name: Create new repo for repo request
 
 on:
   issues:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       json:
-        description: 'JSON'
+        description: "JSON"
         required: true
         type: string
 
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       json: ${{ steps.create-output.outputs.json }}
-    steps:      
+    steps:
       - name: Issue Forms Body Parser
         if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
         id: parse
@@ -49,13 +49,6 @@ jobs:
           PROJECT=$(echo $JSON | jq -r '.Project' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
           RNAME=$(echo $JSON | jq -r '.Name' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
           echo "name=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}" >> "$GITHUB_OUTPUT"
-      - name: Get Attrbutes
-        id: get-attributes
-        env:
-          JSON: ${{ needs.provide-json.outputs.json }}
-        run: |
-          echo "visibility=$(echo $JSON | jq -r '.Visibility')" >> "$GITHUB_OUTPUT"
-          echo "language=$(echo $JSON | jq -r '.Language')" >> "$GITHUB_OUTPUT"
       - name: Validate Repo Name
         env:
           REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
@@ -68,6 +61,13 @@ jobs:
           if [[ "$REPO" == -* ]]; then exit 1; fi
           # shall not end with minus
           if [[ "$REPO" == *- ]]; then exit 1; fi
+      - name: Get Attrbutes
+        id: get-attributes
+        env:
+          JSON: ${{ needs.provide-json.outputs.json }}
+        run: |
+          echo "visibility=$(echo $JSON | jq -r '.Visibility')" >> "$GITHUB_OUTPUT"
+          echo "language=$(echo $JSON | jq -r '.Language')" >> "$GITHUB_OUTPUT"
       - name: Get Token
         id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
@@ -75,6 +75,21 @@ jobs:
           application_id: ${{ vars.GH_APP_ID }}
           application_private_key: ${{ secrets.GH_APP_KEY }}
           organization: ${{ vars.ORGANIZATION }}
+      - name: Add files for initial commit
+        env:
+          LANGUAGE: ${{ steps.get-attributes.outputs.language }}
+        run: |
+          cp -r ./templates/${LANGUAGE}/* .
+          git add .
+      - name: Create commit
+        env:
+          CI_COMMIT_USER: "xpirit-training-bot[bot]"
+          CI_COMMIT_USER_MAIL: 139118093+xpirit-training-bot[bot]@users.noreply.github.com
+          CI_COMMIT_MESSAGE: "chore(org): Initial commit"
+        run: |
+          git config --global user.name $CI_COMMIT_USER
+          git config --global user.email $CI_COMMIT_USER_MAIL
+          git commit -m $CI_COMMIT_MESSAGE
       - name: Create repo
         id: create-repo
         env:
@@ -82,7 +97,7 @@ jobs:
           REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
           VISIBILITY: ${{ steps.get-attributes.outputs.visibility }}
         run: |
-          url=$(gh repo create xpirit-training/$REPO_NAME --$VISIBILITY)
+          url=$(gh repo create xpirit-training/$REPO_NAME --$VISIBILITY --push)
           echo "repo_url=$url" >> "$GITHUB_OUTPUT"
       - name: Create comment and close issue on success
         if: success()
@@ -95,5 +110,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.user.login }} there were some problems provisioning your repo. Please reach out to your org owner for additional help. Thank you."  
-          
+          gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.user.login }} there were some problems provisioning your repo. Please reach out to your org owner for additional help. Thank you."

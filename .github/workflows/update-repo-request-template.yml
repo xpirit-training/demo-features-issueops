@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - './org/**'
-      - './templates/languages/**'
-      - '.github/workflows/update-repo-request-template.yml'
+      - "./org/**"
+      - "./templates/languages/**"
+      - ".github/workflows/update-repo-request-template.yml"
 
 permissions:
   contents: write
@@ -16,7 +16,7 @@ env:
 
 jobs:
   update-org:
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.3.0
       - name: Get Companies
@@ -30,7 +30,7 @@ jobs:
           find ./org/companies/*/teams/*/projects -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1")' sh {} \; | sort > projects
       - name: Get Languages
         run: >-
-          find ./templates/languages -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1")' sh {} \; | sort > languages            
+          find ./templates/languages -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1")' sh {} \; | sort > languages
       - name: Update Companies
         run: >-
           COMPANIES=$(cat companies)
@@ -63,20 +63,21 @@ jobs:
       - name: Display File
         if: ${{ steps.change-detection.outputs.changed == 'true' }}
         run: cat $ISSUE_TEMPLATE_FILE
-      - name: 'Yamllint'
+      - name: "Yamllint"
         if: ${{ steps.change-detection.outputs.changed == 'true' }}
         uses: karancode/yamllint-github-action@master
         with:
           yamllint_file_or_dir: ${{ env.ISSUE_TEMPLATE_FILE }}
           yamllint_strict: true
-      - name: Commit Changes          
+      - name: Commit Changes
         if: ${{ steps.change-detection.outputs.changed == 'true' }}
-        env: 
+        env:
+          CI_COMMIT_USER: "xpirit-training-bot[bot]"
+          CI_COMMIT_USER_MAIL: 139118093+xpirit-training-bot[bot]@users.noreply.github.com
           CI_COMMIT_MESSAGE: "chore(org): Update Issue Template File"
-          CI_COMMIT_AUTHOR: Continuous Integration
         run: |
-          git config --global user.name "xpirit-training-bot[bot]"
-          git config --global user.email "139118093+xpirit-training-bot[bot]@users.noreply.github.com"
+          git config --global user.name $CI_COMMIT_USER
+          git config --global user.email $CI_COMMIT_USER_MAIL
           git add $ISSUE_TEMPLATE_FILE
-          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
+          git commit -m $CI_COMMIT_MESSAGE
           git push
