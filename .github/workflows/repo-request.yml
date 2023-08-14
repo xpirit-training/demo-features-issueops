@@ -27,13 +27,14 @@ jobs:
         uses: zentered/issue-forms-body-parser@v2.0.0
       - name: Create Output
         id: create-output
-        run: |
-          if [[ ! -z ${{ steps.parse.outputs.data }} ]]
-            echo "json=${{ steps.parse.outputs.data }}" >> "$GITHUB_OUTPUT"
+        run: |        
+          if [[ ! -z '${{ steps.parse.outputs.data }}' ]]
+          then
+            echo 'json=${{ steps.parse.outputs.data }}' >> "$GITHUB_OUTPUT"
           else
-            echo "json=${{ github.event.inputs.json }}" >> "$GITHUB_OUTPUT"
+            echo 'json=${{ github.event.inputs.json }}' >> "$GITHUB_OUTPUT"
           fi
-  create-repos-from-issue:
+  create-repo:
     name: "Create Repo"
     needs: provide-json
     runs-on: ubuntu-latest
@@ -44,10 +45,10 @@ jobs:
         env:
           JSON: ${{ needs.provide-json.outputs.json }}
         run: |
-          COMPANY=$(echo $JSON | jq -r '.Company'  | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')    
-          TEAM=$(echo $JSON | jq -r '.Team' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          PROJECT=$(echo $JSON | jq -r '.Project' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          RNAME=$(echo $JSON | jq -r '.Name' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          COMPANY=$(echo $JSON | jq -r '.company.text'  | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')    
+          TEAM=$(echo $JSON | jq -r '.team.text' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          PROJECT=$(echo $JSON | jq -r '.project.text' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          RNAME=$(echo $JSON | jq -r '.name.text' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
           echo "name=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}" >> "$GITHUB_OUTPUT"
       - name: Validate Repo Name
         env:
@@ -66,8 +67,8 @@ jobs:
         env:
           JSON: ${{ needs.provide-json.outputs.json }}
         run: |
-          echo "visibility=$(echo $JSON | jq -r '.Visibility')" >> "$GITHUB_OUTPUT"
-          echo "language=$(echo $JSON | jq -r '.Language')" >> "$GITHUB_OUTPUT"
+          echo "visibility=$(echo $JSON | jq -r '.visibility.text')" >> "$GITHUB_OUTPUT"
+          echo "language=$(echo $JSON | jq -r '.language.text')" >> "$GITHUB_OUTPUT"
       - name: Get Token
         id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
@@ -79,7 +80,7 @@ jobs:
         env:
           LANGUAGE: ${{ steps.get-attributes.outputs.language }}
         run: |
-          cp -r ./templates/${LANGUAGE}/* .
+          cp -r ./templates/languages/${LANGUAGE}/* .
           git add .
       - name: Create commit
         env:
@@ -87,7 +88,7 @@ jobs:
         run: |
           git config --global user.name ${{ vars.CI_COMMIT_USER }}
           git config --global user.email ${{ vars.CI_COMMIT_USER_MAIL }}
-          git commit -m $CI_COMMIT_MESSAGE
+          git commit -m "$CI_COMMIT_MESSAGE"
       - name: Create repo
         id: create-repo
         env:
@@ -97,15 +98,21 @@ jobs:
         run: |
           url=$(gh repo create xpirit-training/$REPO_NAME --$VISIBILITY --push)
           echo "repo_url=$url" >> "$GITHUB_OUTPUT"
-      - name: Create comment and close issue on success
-        if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.user.login }} your repository was created and is now accessible here: ${{ steps.create-repo.outputs.repo_url }}"
-      - name: Create comment on failure
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.user.login }} there were some problems provisioning your repo. Please reach out to your org owner for additional help. Thank you."
+    #comment-issue:   
+    #name: "Comment issue"
+    #if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
+    #needs: create-repo
+    #runs-on: ubuntu-latest
+    #steps: 
+      #- name: Create comment and close issue on success
+      #  if: success()
+      #  env:
+      #    GH_TOKEN: ${{ github.token }}
+      #  run: |
+      #    gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.user.login }} your repository was created and is now accessible here: ${{ steps.create-repo.outputs.repo_url }}"
+      #- name: Create comment on failure
+      #  if: failure()
+      #  env:
+      #    GH_TOKEN: ${{ github.token }}
+      #  run: |
+      #    gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.user.login }} there were some problems provisioning your repo. Please reach out to your org owner for additional help. Thank you."
