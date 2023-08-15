@@ -1,4 +1,4 @@
-name: Create new repo for repo request
+name: Create New Repo
 
 on:
   issues:
@@ -8,38 +8,65 @@ on:
       json:
         description: "JSON"
         required: true
+        default: '{"visibility":{"title":"Visibility","content":["public"],"text":"public"},"name":{"title":"Name","content":["My-test-repo"],"text":"My-test-repo"},"company":{"title":"Company","content":["Xpirit (1337)"],"text":"Xpirit (1337)"},"team":{"title":"Team","content":["T1-Team 1"],"text":"T1-Team 1"},"project":{"title":"Project","content":["project 1"],"text":"project 1"},"language":{"title":"Language","content":["terraform"],"text":"terraform"}}'
         type: string
+      delete-repo:
+        description: "Delete repository at the end of the workflow run"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
   issues: write
 
+env:
+  DEFAULT_BRANCH: main
+
 jobs:
   provide-json:
-    name: "Provide json data"
+    name: "Provide JSON Data"
     runs-on: ubuntu-latest
     outputs:
       json: ${{ steps.create-output.outputs.json }}
+      status: ${{ steps.status.outputs.status }}
     steps:
-      - name: Issue Forms Body Parser
+      - uses: actions/checkout@v3.3.0
+      - name: Cache Template Files
+        id: cache-template-files
+        uses: actions/cache@v3
+        with:
+          path: ./templates
+          key: templates
+      - name: Parse Issue Form into JSON
         if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
         id: parse
         uses: zentered/issue-forms-body-parser@v2.0.0
       - name: Create Output
         id: create-output
-        run: |        
+        run: |
           if [[ ! -z '${{ steps.parse.outputs.data }}' ]]
           then
             echo 'json=${{ steps.parse.outputs.data }}' >> "$GITHUB_OUTPUT"
           else
             echo 'json=${{ github.event.inputs.json }}' >> "$GITHUB_OUTPUT"
           fi
+      - name: Output status
+        id: status
+        if: ${{ always() }}
+        run: |
+          echo 'status=${{ job.status }}' >> "$GITHUB_OUTPUT"
+
   create-repo:
     name: "Create Repo"
     needs: provide-json
     runs-on: ubuntu-latest
+    outputs:
+      repo_name: ${{ steps.generate-repo-name.outputs.name }}
+      repo_url: ${{ steps.create-repo.outputs.repo_url }}
+      language: ${{ steps.generate-repo-name.outputs.name }}
+      status: ${{ steps.status.outputs.status }}
     steps:
-      - uses: actions/checkout@v3.3.0
       - name: Get Repo Name
         id: generate-repo-name
         env:
@@ -69,6 +96,12 @@ jobs:
         run: |
           echo "visibility=$(echo $JSON | jq -r '.visibility.text')" >> "$GITHUB_OUTPUT"
           echo "language=$(echo $JSON | jq -r '.language.text')" >> "$GITHUB_OUTPUT"
+      - name: Restore Cached Template Files
+        id: restore-cached-template-files
+        uses: actions/cache@v3
+        with:
+          path: ./templates
+          key: templates
       - name: Get Token
         id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
@@ -76,43 +109,65 @@ jobs:
           application_id: ${{ vars.GH_APP_ID }}
           application_private_key: ${{ secrets.GH_APP_KEY }}
           organization: ${{ vars.ORGANIZATION }}
-      - name: Add files for initial commit
-        env:
-          LANGUAGE: ${{ steps.get-attributes.outputs.language }}
-        run: |
-          cp -r ./templates/languages/${LANGUAGE}/* .
-          git add .
-      - name: Create commit
-        env:
-          CI_COMMIT_MESSAGE: "chore(org): Initial commit"
-        run: |
-          git config --global user.name ${{ vars.CI_COMMIT_USER }}
-          git config --global user.email ${{ vars.CI_COMMIT_USER_MAIL }}
-          git commit -m "$CI_COMMIT_MESSAGE"
-      - name: Create repo
+      - name: Create Repo
         id: create-repo
         env:
           GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
           REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
+          REPO_OWNER: ${{ vars.ORGANIZATION }}
           VISIBILITY: ${{ steps.get-attributes.outputs.visibility }}
         run: |
-          url=$(gh repo create xpirit-training/$REPO_NAME --$VISIBILITY --push)
-          echo "repo_url=$url" >> "$GITHUB_OUTPUT"
-    #comment-issue:   
-    #name: "Comment issue"
-    #if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
-    #needs: create-repo
-    #runs-on: ubuntu-latest
-    #steps: 
-      #- name: Create comment and close issue on success
-      #  if: success()
-      #  env:
-      #    GH_TOKEN: ${{ github.token }}
-      #  run: |
-      #    gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.user.login }} your repository was created and is now accessible here: ${{ steps.create-repo.outputs.repo_url }}"
-      #- name: Create comment on failure
-      #  if: failure()
-      #  env:
-      #    GH_TOKEN: ${{ github.token }}
-      #  run: |
-      #    gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.user.login }} there were some problems provisioning your repo. Please reach out to your org owner for additional help. Thank you."
+          REPO_URL=$(gh repo create $REPO_OWNER/$REPO_NAME --$VISIBILITY --clone)
+          echo "repo_url=$REPO_URL" >> "$GITHUB_OUTPUT"
+      - name: Add Files        
+        working-directory: ./${{ steps.generate-repo-name.outputs.name }}
+        env:
+          GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
+          LANGUAGE: ${{ steps.get-attributes.outputs.language }}
+          CI_COMMIT_MESSAGE: "chore(org): Initial commit"
+        run: |
+          gh auth setup-git
+          git config user.name '${{ vars.CI_COMMIT_USER }}'
+          git config user.email '${{ vars.CI_COMMIT_USER_MAIL }}'
+          git checkout -b $DEFAULT_BRANCH
+          cp -r ../templates/common/* .
+          cp -r ../templates/languages/$LANGUAGE/* .
+          git add -A
+          git commit -m "$CI_COMMIT_MESSAGE"
+          git push --set-upstream origin $DEFAULT_BRANCH
+      - name: Delete Repo
+        if: ${{ failure() || github.event.inputs.delete-repo == 'true' }}
+        env:
+          GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
+          REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
+          REPO_OWNER: ${{ vars.ORGANIZATION }}
+        run: |
+          gh repo delete $REPO_OWNER/$REPO_NAME --yes
+      - name: Output Status
+        id: status
+        if: ${{ always() }}
+        run: |
+          echo 'status=${{ job.status }}' >> "$GITHUB_OUTPUT"
+
+  comment-issue:
+    name: "Handle issue"
+    if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
+    needs:
+      - provide-json
+      - create-repo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Comment and Close Issue on Success
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ ${{ needs.provide-json.outputs.status != 'success' }} ] || \
+             [ ${{ needs.create-repo.outputs.status != 'success' }} ] || \
+          then
+            echo "the repository provisioning failed..." >> status.tmp
+            echo "Input-Parsing: ${{ needs.provide-json.outputs.status }}" >> status.tmp
+            echo "Repo-Creation: ${{ needs.create-repo.outputs.status }}" >> status.tmp
+            echo "Check [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details." >> status.tmp
+            gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.user.login }} $(cat status.tmp)"
+          else
+            gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.user.login }} your repository was created and is now accessible here: ${{ needs.create-repo.outputs.repo_url }}"
