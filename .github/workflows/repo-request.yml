@@ -157,17 +157,19 @@ jobs:
       - create-repo
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3.3.0
       - name: Create Comment and Close Issue on Success
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ ${{ needs.provide-json.outputs.status != 'success' }} ] || \
-             [ ${{ needs.create-repo.outputs.status != 'success' }} ] || \
+          if [ ${{ needs.provide-json.outputs.status }} != 'success' ] || \
+             [ ${{ needs.create-repo.outputs.status }} != 'success' ]
           then
             echo "the repository provisioning failed..." >> status.tmp
             echo "Input-Parsing: ${{ needs.provide-json.outputs.status }}" >> status.tmp
             echo "Repo-Creation: ${{ needs.create-repo.outputs.status }}" >> status.tmp
-            echo "Check [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details." >> status.tmp
+            echo "Check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details." >> status.tmp
             gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.user.login }} $(cat status.tmp)"
           else
             gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.user.login }} your repository was created and is now accessible here: ${{ needs.create-repo.outputs.repo_url }}"
+          fi
