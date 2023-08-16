@@ -37,7 +37,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./templates
-          key: templates
+          key: templates-${{ github.run_id }}
       - name: Parse Issue Form into JSON
         if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
         id: parse
@@ -62,9 +62,8 @@ jobs:
     needs: provide-json
     runs-on: ubuntu-latest
     outputs:
-      repo_name: ${{ steps.generate-repo-name.outputs.name }}
+      repo_name: ${{ steps.generate-repo-name.outputs.repo_name }}
       repo_url: ${{ steps.create-repo.outputs.repo_url }}
-      language: ${{ steps.generate-repo-name.outputs.name }}
       status: ${{ steps.status.outputs.status }}
     steps:
       - name: Get Repo Name
@@ -76,10 +75,11 @@ jobs:
           TEAM=$(echo $JSON | jq -r '.team.text' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
           PROJECT=$(echo $JSON | jq -r '.project.text' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
           RNAME=$(echo $JSON | jq -r '.name.text' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          echo "name=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}" >> "$GITHUB_OUTPUT"
+          echo "project_name"="${RNAME}" >> "$GITHUB_OUTPUT"
+          echo "repo_name=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}" >> "$GITHUB_OUTPUT"
       - name: Validate Repo Name
         env:
-          REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
+          REPO_NAME: ${{ steps.generate-repo-name.outputs.repo_name }}
         run: |
           # shall not be empty
           if [ -z $REPO_NAME ]; then exit 1; fi
@@ -101,7 +101,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./templates
-          key: templates
+          key: templates-${{ github.run_id }}
       - name: Get Token
         id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
@@ -113,14 +113,28 @@ jobs:
         id: create-repo
         env:
           GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
-          REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
+          REPO_NAME: ${{ steps.generate-repo-name.outputs.repo_name }}
           REPO_OWNER: ${{ vars.ORGANIZATION }}
           VISIBILITY: ${{ steps.get-attributes.outputs.visibility }}
         run: |
           REPO_URL=$(gh repo create $REPO_OWNER/$REPO_NAME --$VISIBILITY --clone)
           echo "repo_url=$REPO_URL" >> "$GITHUB_OUTPUT"
-      - name: Add Files        
-        working-directory: ./${{ steps.generate-repo-name.outputs.name }}
+      - name: Copy Files
+        working-directory: ./${{ steps.generate-repo-name.outputs.repo_name }}
+        env:
+          LANGUAGE: ${{ steps.get-attributes.outputs.language }}
+        run: |
+          cp -r ../templates/common/* .
+          cp -r ../templates/languages/$LANGUAGE/* .
+      - name: Templating Using Jinja
+        working-directory: ./${{ steps.generate-repo-name.outputs.repo_name }}
+        env:
+          PROJECT_NAME: ${{ steps.generate-repo-name.outputs.project_name }}
+        run: |
+          pip install jinja-cli         
+          find . -type f -exec sh -c 'jinja -E PROJECT_NAME -o $0 $0' {} \;
+      - name: Commit & Push Files
+        working-directory: ./${{ steps.generate-repo-name.outputs.repo_name }}
         env:
           GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
           LANGUAGE: ${{ steps.get-attributes.outputs.language }}
@@ -130,8 +144,6 @@ jobs:
           git config user.name '${{ vars.CI_COMMIT_USER }}'
           git config user.email '${{ vars.CI_COMMIT_USER_MAIL }}'
           git checkout -b $DEFAULT_BRANCH
-          cp -r ../templates/common/* .
-          cp -r ../templates/languages/$LANGUAGE/* .
           git add -A
           git commit -m "$CI_COMMIT_MESSAGE"
           git push --set-upstream origin $DEFAULT_BRANCH
@@ -139,7 +151,7 @@ jobs:
         if: ${{ failure() || github.event.inputs.delete-repo == 'true' }}
         env:
           GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
-          REPO_NAME: ${{ steps.generate-repo-name.outputs.name }}
+          REPO_NAME: ${{ steps.generate-repo-name.outputs.repo_name }}
           REPO_OWNER: ${{ vars.ORGANIZATION }}
         run: |
           gh repo delete $REPO_OWNER/$REPO_NAME --yes
