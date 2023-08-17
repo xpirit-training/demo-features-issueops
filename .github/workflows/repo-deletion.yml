@@ -1,8 +1,8 @@
 name: Delete Repo
 
 on:
-  issues:
-    types: [labeled]
+  workflow_call:
+    
   workflow_dispatch:
     inputs:
       repo_name:
@@ -15,19 +15,9 @@ permissions:
   issues: write
 
 jobs:
-  check-label:
-    name: "Verify Issue Label"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3.3.0
-      - name: cancelling
-        uses: andymckay/cancel-action@0.3
-        if: ${{ github.event.label && github.event.label.name != 'repo-deletion' }}
-
   repo-name:
     name: "Provide Repo Name"
     runs-on: ubuntu-latest
-    needs: check-label
     outputs:
       repo_name: ${{ steps.create-output.outputs.repo_name }}
       status: ${{ steps.status.outputs.status }}
