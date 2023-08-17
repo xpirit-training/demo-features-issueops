@@ -1,0 +1,12 @@
+---
+name: Repo Deletion
+description: Request deletion of a repository in your organization.
+title: "[Repo Deletion] "
+labels: [repo-deletion]
+body:
+  - type: input
+    attributes:
+      label: Name
+      description: Full name of the repository
+    validations:
+      required: true
