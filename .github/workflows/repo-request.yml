@@ -65,11 +65,11 @@ jobs:
       repo_name: ${{ steps.generate-repo-name.outputs.repo_name }}
       repo_url: ${{ steps.create-repo.outputs.repo_url }}
       status: ${{ steps.status.outputs.status }}
+    env:
+      JSON: ${{ needs.provide-json.outputs.json }}
     steps:
       - name: Get Repo Name
         id: generate-repo-name
-        env:
-          JSON: ${{ needs.provide-json.outputs.json }}
         run: |
           COMPANY=$(echo $JSON | jq -r '.company.text'  | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')    
           TEAM=$(echo $JSON | jq -r '.team.text' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
@@ -91,8 +91,6 @@ jobs:
           if [[ "$REPO" == *- ]]; then exit 1; fi
       - name: Get Attrbutes
         id: get-attributes
-        env:
-          JSON: ${{ needs.provide-json.outputs.json }}
         run: |
           echo "visibility=$(echo $JSON | jq -r '.visibility.text')" >> "$GITHUB_OUTPUT"
           echo "language=$(echo $JSON | jq -r '.language.text')" >> "$GITHUB_OUTPUT"
@@ -168,20 +166,24 @@ jobs:
       - provide-json
       - create-repo
     runs-on: ubuntu-latest
+    env:
+      JSON_STATUS: ${{ needs.provide-json.outputs.status }}
+      REPO_STATUS: ${{ needs.create-repo.outputs.status }}
+      REPO_URL: ${{ needs.create-repo.outputs.repo_url }}
     steps:
       - uses: actions/checkout@v3.3.0
       - name: Create Comment and Close Issue on Success
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ ${{ needs.provide-json.outputs.status }} != 'success' ] || \
-             [ ${{ needs.create-repo.outputs.status }} != 'success' ]
+          if [ $JSON_STATUS != 'success' ] || \
+             [ $REPO_STATUS != 'success' ]
           then
             echo "the repository provisioning failed..." >> status.tmp
-            echo "Input-Parsing: ${{ needs.provide-json.outputs.status }}" >> status.tmp
-            echo "Repo-Creation: ${{ needs.create-repo.outputs.status }}" >> status.tmp
+            echo "Input-Parsing: $JSON_STATUS" >> status.tmp
+            echo "Repo-Creation: $REPO_STATUS" >> status.tmp
             echo "Check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details." >> status.tmp
             gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.user.login }} $(cat status.tmp)"
           else
-            gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.user.login }} your repository was created and is now accessible here: ${{ needs.create-repo.outputs.repo_url }}"
+            gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.user.login }} your repository was created and is now accessible here: $REPO_URL"
           fi
