@@ -1,20 +1,60 @@
 name: Create New Repo
 
 on:
-  issues:
-    types: [labeled]
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      json:
-        description: "JSON"
+      project_name:
+        description: "Repo Name"
         required: true
-        default: '{"visibility":{"title":"Visibility","content":["public"],"text":"public"},"name":{"title":"Name","content":["My-test-repo"],"text":"My-test-repo"},"company":{"title":"Company","content":["Xpirit (1337)"],"text":"Xpirit (1337)"},"team":{"title":"Team","content":["T1-Team 1"],"text":"T1-Team 1"},"project":{"title":"Project","content":["project 1"],"text":"project 1"},"language":{"title":"Language","content":["terraform"],"text":"terraform"}}'
+        type: string
+      repo_name:
+        description: "Repo Name"
+        required: true
+        type: string
+      visibility:
+        description: "Repo Visibility"
+        required: true
+        type: string
+      language:
+        description: "Language Template"
+        required: true
         type: string
       delete-repo:
         description: "Delete repository at the end of the workflow run"
-        required: true
-        default: false
+        required: false
         type: boolean
+        default: false
+    outputs:
+      repo_url:
+        description: "The URL of the created repo"
+        value: ${{ jobs.create-repo.outputs.repo_url }}
+  workflow_dispatch:
+    inputs:
+      project_name:
+        description: "Repo Name"
+        required: true
+        type: string
+        default: "TestProject"
+      repo_name:
+        description: "Repo Name"
+        required: true
+        type: string
+        default: "TestCompany-TestTeam-TestProject"
+      visibility:
+        description: "Repo Visibility"
+        required: true
+        type: string
+        default: "public"
+      language:
+        description: "Language Template"
+        required: true
+        type: string
+        default: "terraform"
+      delete-repo:
+        description: "Delete repository at the end of the workflow run"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   actions: write
@@ -23,24 +63,16 @@ permissions:
 
 env:
   DEFAULT_BRANCH: main
+  REPO_NAME: ${{ inputs.repo_name }}
+  REPO_OWNER: ${{ vars.ORGANIZATION }}
+  PROJECT_NAME: ${{ inputs.project_name }}
+  LANGUAGE: ${{ inputs.language }}
+  VISIBILITY: ${{ inputs.visibility }}
 
 jobs:
-  check-label:
-    name: "Verify Issue Label"
+  cache-templates:
+    name: "Cache Templates"
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3.3.0
-      - name: Cancelling
-        uses: andymckay/cancel-action@0.3
-        if: ${{ github.event.label && github.event.label.name != 'repo-request' }}
-
-  provide-json:
-    name: "Provide JSON Data"
-    runs-on: ubuntu-latest
-    needs: check-label
-    outputs:
-      json: ${{ steps.create-output.outputs.json }}
-      status: ${{ steps.status.outputs.status }}
     steps:
       - uses: actions/checkout@v3.3.0
       - name: Cache Template Files
@@ -49,48 +81,15 @@ jobs:
         with:
           path: ./templates
           key: templates-${{ github.run_id }}
-      - name: Parse Issue Form into JSON
-        if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
-        id: parse
-        uses: zentered/issue-forms-body-parser@v2.0.0
-      - name: Create Output
-        id: create-output
-        run: |
-          if [[ ! -z '${{ steps.parse.outputs.data }}' ]]
-          then
-            echo 'json=${{ steps.parse.outputs.data }}' >> "$GITHUB_OUTPUT"
-          else
-            echo 'json=${{ github.event.inputs.json }}' >> "$GITHUB_OUTPUT"
-          fi
-      - name: Output status
-        id: status
-        if: ${{ always() }}
-        run: |
-          echo 'status=${{ job.status }}' >> "$GITHUB_OUTPUT"
 
   create-repo:
     name: "Create Repo"
-    needs: provide-json
+    needs: cache-templates
     runs-on: ubuntu-latest
     outputs:
-      repo_name: ${{ steps.generate-repo-name.outputs.repo_name }}
       repo_url: ${{ steps.create-repo.outputs.repo_url }}
-      status: ${{ steps.status.outputs.status }}
-    env:
-      JSON: ${{ needs.provide-json.outputs.json }}
     steps:
-      - name: Get Repo Name
-        id: generate-repo-name
-        run: |
-          COMPANY=$(echo $JSON | jq -r '.company.text'  | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')    
-          TEAM=$(echo $JSON | jq -r '.team.text' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          PROJECT=$(echo $JSON | jq -r '.project.text' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          RNAME=$(echo $JSON | jq -r '.name.text' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          echo "project_name"="${RNAME}" >> "$GITHUB_OUTPUT"
-          echo "repo_name=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}" >> "$GITHUB_OUTPUT"
       - name: Validate Repo Name
-        env:
-          REPO_NAME: ${{ steps.generate-repo-name.outputs.repo_name }}
         run: |
           # shall not be empty
           if [ -z $REPO_NAME ]; then exit 1; fi
@@ -100,11 +99,6 @@ jobs:
           if [[ "$REPO" == -* ]]; then exit 1; fi
           # shall not end with minus
           if [[ "$REPO" == *- ]]; then exit 1; fi
-      - name: Get Attrbutes
-        id: get-attributes
-        run: |
-          echo "visibility=$(echo $JSON | jq -r '.visibility.text')" >> "$GITHUB_OUTPUT"
-          echo "language=$(echo $JSON | jq -r '.language.text')" >> "$GITHUB_OUTPUT"
       - name: Restore Cached Template Files
         id: restore-cached-template-files
         uses: actions/cache@v3
@@ -122,31 +116,23 @@ jobs:
         id: create-repo
         env:
           GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
-          REPO_NAME: ${{ steps.generate-repo-name.outputs.repo_name }}
-          REPO_OWNER: ${{ vars.ORGANIZATION }}
-          VISIBILITY: ${{ steps.get-attributes.outputs.visibility }}
         run: |
           REPO_URL=$(gh repo create $REPO_OWNER/$REPO_NAME --$VISIBILITY --clone)
           echo "repo_url=$REPO_URL" >> "$GITHUB_OUTPUT"
       - name: Copy Files
-        working-directory: ./${{ steps.generate-repo-name.outputs.repo_name }}
-        env:
-          LANGUAGE: ${{ steps.get-attributes.outputs.language }}
+        working-directory: ./${{ inputs.repo_name }}
         run: |
           cp -r ../templates/common/* .
           cp -r ../templates/languages/$LANGUAGE/* .
       - name: Templating Using Jinja
-        working-directory: ./${{ steps.generate-repo-name.outputs.repo_name }}
-        env:
-          PROJECT_NAME: ${{ steps.generate-repo-name.outputs.project_name }}
+        working-directory: ./${{ inputs.repo_name }}
         run: |
           pip install jinja-cli         
           find . -type f -exec sh -c 'jinja -E PROJECT_NAME -o $0 $0' {} \;
       - name: Commit & Push Files
-        working-directory: ./${{ steps.generate-repo-name.outputs.repo_name }}
+        working-directory: ./${{ inputs.repo_name }}
         env:
           GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
-          LANGUAGE: ${{ steps.get-attributes.outputs.language }}
           CI_COMMIT_MESSAGE: "chore(org): Initial commit"
         run: |
           gh auth setup-git
@@ -160,41 +146,5 @@ jobs:
         if: ${{ failure() || github.event.inputs.delete-repo == 'true' }}
         env:
           GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
-          REPO_NAME: ${{ steps.generate-repo-name.outputs.repo_name }}
-          REPO_OWNER: ${{ vars.ORGANIZATION }}
         run: |
           gh repo delete $REPO_OWNER/$REPO_NAME --yes
-      - name: Output Status
-        id: status
-        if: ${{ always() }}
-        run: |
-          echo 'status=${{ job.status }}' >> "$GITHUB_OUTPUT"
-
-  comment-issue:
-    name: "Handle issue"
-    if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
-    needs:
-      - provide-json
-      - create-repo
-    runs-on: ubuntu-latest
-    env:
-      JSON_STATUS: ${{ needs.provide-json.outputs.status }}
-      REPO_STATUS: ${{ needs.create-repo.outputs.status }}
-      REPO_URL: ${{ needs.create-repo.outputs.repo_url }}
-    steps:
-      - uses: actions/checkout@v3.3.0
-      - name: Create Comment and Close Issue on Success
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ $JSON_STATUS != 'success' ] || \
-             [ $REPO_STATUS != 'success' ]
-          then
-            echo "the repository provisioning failed..." >> status.tmp
-            echo "Input-Parsing: $JSON_STATUS" >> status.tmp
-            echo "Repo-Creation: $REPO_STATUS" >> status.tmp
-            echo "Check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details." >> status.tmp
-            gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.user.login }} $(cat status.tmp)"
-          else
-            gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.user.login }} your repository was created and is now accessible here: $REPO_URL"
-          fi
