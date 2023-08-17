@@ -1,0 +1,21 @@
+name: handle issue creation
+
+on:
+    issues:
+      types: [labeled]
+
+permissions:
+    actions: write
+    issues: write
+      
+
+jobs:
+  repo-request:
+    name: "Handle repo request"
+    if: ${{ github.event.label && github.event.label.name != 'repo-request' }}
+    uses: ./.github/workflows/repo-request.yml
+
+  repo-deletion:
+    name: "Handle repo deletion request"
+    if: ${{ github.event.label && github.event.label.name != 'repo-deletion' }}
+    uses: ./.github/workflows/repo-deletion.yml
