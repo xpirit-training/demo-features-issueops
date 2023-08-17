@@ -48,8 +48,7 @@ jobs:
         run: |
           if [[ ! -z '${{ steps.parse.outputs.data }}' ]]
           then
-            JSON=${{ steps.parse.outputs.data }}
-            echo "repo_name=$(echo $JSON | jq -r '.name.text')" >> "$GITHUB_OUTPUT"
+            echo "repo_name=$(echo '${{ steps.parse.outputs.data }}' | jq -r '.name.text')" >> "$GITHUB_OUTPUT"
           else
             echo 'repo_name=${{ github.event.inputs.repo_name }}' >> "$GITHUB_OUTPUT"
           fi
