@@ -1,69 +1,31 @@
 name: Delete Repo
 
 on:
-  issues:
-    types: [labeled]
+  workflow_call:
+    inputs:
+      repo_name:
+        description: "Name"
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       repo_name:
         description: "Name"
         required: true
         type: string
+        default: "TestCompany-TestTeam-TestProject"
 
 permissions:
   actions: write
   issues: write
 
+env:
+  REPO_NAME: ${{ vars.ORGANIZATION }}/${{ inputs.repo_name }}
+
 jobs:
-  check-label:
-    name: "Verify Issue Label"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3.3.0
-      - name: cancelling
-        uses: andymckay/cancel-action@0.3
-        if: ${{ github.event.label && github.event.label.name != 'repo-deletion' }}
-
-  repo-name:
-    name: "Provide Repo Name"
-    runs-on: ubuntu-latest
-    needs: check-label
-    outputs:
-      repo_name: ${{ steps.create-output.outputs.repo_name }}
-      status: ${{ steps.status.outputs.status }}
-    steps:
-      - uses: actions/checkout@v3.3.0
-      - name: Cache Template Files
-        id: cache-template-files
-        uses: actions/cache@v3
-        with:
-          path: ./templates
-          key: templates-${{ github.run_id }}
-      - name: Parse Issue Form into JSON
-        if: ${{ github.event.label && github.event.label.name == 'repo-deletion' }}
-        id: parse
-        uses: zentered/issue-forms-body-parser@v2.0.0
-      - name: Create Output
-        id: create-output
-        run: |
-          if [[ ! -z '${{ steps.parse.outputs.data }}' ]]
-          then
-            echo "repo_name=$(echo '${{ steps.parse.outputs.data }}' | jq -r '.name.text')" >> "$GITHUB_OUTPUT"
-          else
-            echo 'repo_name=${{ github.event.inputs.repo_name }}' >> "$GITHUB_OUTPUT"
-          fi
-      - name: Output status
-        id: status
-        if: ${{ always() }}
-        run: |
-          echo 'status=${{ job.status }}' >> "$GITHUB_OUTPUT"
-
   lookup:
     name: "Check if Repo Exists"
     runs-on: ubuntu-latest
-    needs: repo-name
-    env:
-      REPO_NAME: ${{ vars.ORGANIZATION }}/${{ needs.repo-name.outputs.repo_name }}
     steps:
       - name: Get Token
         id: get-workflow-token
@@ -83,13 +45,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: deletion
     needs:
-      - repo-name
       - lookup
-    concurrency: delete-${{ needs.repo-name.outputs.repo_name }}
-    outputs:
-      status: ${{ steps.status.outputs.status }}
-    env:
-      REPO_NAME: ${{ vars.ORGANIZATION }}/${{ needs.repo-name.outputs.repo_name }}
+    concurrency: delete-${{ inputs.repo_name }}
     steps:
       - name: Get Token
         id: get-workflow-token
@@ -103,36 +60,3 @@ jobs:
           GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
         run: |
           gh repo delete $REPO_NAME --yes
-      - name: Output status
-        id: status
-        if: ${{ always() }}
-        run: |
-          echo 'status=${{ job.status }}' >> "$GITHUB_OUTPUT"
-
-  comment-issue:
-    name: "Handle issue"
-    if: ${{ github.event.label && github.event.label.name == 'repo-deletion' }}
-    needs:
-      - repo-name
-      - delete-repo
-    runs-on: ubuntu-latest
-    env:
-      INPUT_STATUS: ${{ needs.repo-name.outputs.status }}
-      DELETE_STATUS: ${{ needs.delete-repo.outputs.status }}
-    steps:
-      - uses: actions/checkout@v3.3.0
-      - name: Create Comment and Close Issue on Success
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ $INPUT_STATUS != 'success' ] || \
-             [ $DELETE_STATUS != 'success' ]
-          then
-            echo "the repository deletion failed..." >> status.tmp
-            echo "Input-Parsing: $INPUT_STATUS" >> status.tmp
-            echo "Repo-Deletion: $DELETE_STATUS" >> status.tmp
-            echo "Check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details." >> status.tmp
-            gh issue comment ${{ github.event.issue.number }} -b "@${{ github.event.issue.user.login }} $(cat status.tmp)"
-          else
-            gh issue close ${{ github.event.issue.number }} -r Completed -c "@${{ github.event.issue.user.login }} your repository was successfully deleted"
-          fi
