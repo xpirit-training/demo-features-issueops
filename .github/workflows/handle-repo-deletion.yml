@@ -5,7 +5,7 @@ on:
 
 jobs:
   notify:
-    if: ${{ github.event.label.name != 'repo-deletion' }}
+    #if: ${{ github.event.label.name != 'repo-deletion' }}
     name: "Notify Deletion Issue"
     runs-on: ubuntu-latest
     env:
@@ -17,7 +17,7 @@ jobs:
           message: "@${{ github.event.issue.user.login }} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
 
   parse:
-    if: ${{ github.event.label.name != 'repo-deletion' }}
+    #if: ${{ github.event.label.name != 'repo-deletion' }}
     name: "Parse Deletion Issue"
     runs-on: ubuntu-latest
     outputs:
@@ -25,7 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3.3.0
       - name: Parse Issue Form into JSON
-        if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
         id: parse
         uses: zentered/issue-forms-body-parser@v2.0.0
       - name: Get Repo Name
@@ -36,7 +35,7 @@ jobs:
           echo "repo_name=$(echo $JSON | jq -r '.name.text')" >> "$GITHUB_OUTPUT"
 
   handle:
-    if: ${{ github.event.label.name != 'repo-deletion' }}
+    #if: ${{ github.event.label.name != 'repo-deletion' }}
     needs:
       - parse
     uses: ./.github/workflows/repo-deletion.yml
@@ -44,7 +43,8 @@ jobs:
       repo_name: ${{ needs.parse.outputs.repo_name }}
 
   finish:
-    if: ${{ always() && github.event.label.name != 'repo-deletion' }}
+    #if: ${{ always() && github.event.label.name != 'repo-deletion' }}
+    if: ${{ always() }}
     needs:
       - notify
       - handle

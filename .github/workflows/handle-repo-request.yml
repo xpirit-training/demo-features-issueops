@@ -5,7 +5,7 @@ on:
 
 jobs:
   notify:
-    if: ${{ github.event.label.name != 'repo-request' }}
+    #if: ${{ github.event.label.name != 'repo-request' }}
     name: "Notify Request Issue"
     runs-on: ubuntu-latest
     env:
@@ -17,7 +17,7 @@ jobs:
           message: "@${{ github.event.issue.user.login }} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
 
   parse:
-    if: ${{ github.event.label.name != 'repo-request' }}
+    #if: ${{ github.event.label.name != 'repo-request' }}
     name: "Parse Request Issue"
     runs-on: ubuntu-latest
     outputs:
@@ -28,7 +28,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3.3.0
       - name: Parse Issue Form into JSON
-        if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
         id: parse
         uses: zentered/issue-forms-body-parser@v2.0.0
       - name: Get Repo Name
@@ -51,7 +50,7 @@ jobs:
           echo "language=$(echo $JSON | jq -r '.language.text')" >> "$GITHUB_OUTPUT"
 
   handle:
-    if: ${{ github.event.label.name != 'repo-request' }}
+    #if: ${{ github.event.label.name != 'repo-request' }}
     needs:
       - parse
     uses: ./.github/workflows/repo-request.yml
@@ -62,7 +61,8 @@ jobs:
       language: ${{ needs.parse.outputs.language }}
 
   finish:
-    if: ${{ always() && github.event.label.name != 'repo-request' }}
+    #if: ${{ always() && github.event.label.name != 'repo-request' }}
+    if: ${{ always() }}
     needs:
       - notify
       - handle
