@@ -5,19 +5,17 @@ on:
 
 jobs:
   notify:
-    #if: ${{ github.event.label.name != 'repo-deletion' }}
     name: "Notify Deletion Issue"
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v3.3.0
-      - uses: ./.github/actions/comment-issue.yml
+      - uses: ./.github/actions/comment-issue
         with:
           message: "@${{ github.event.issue.user.login }} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
 
   parse:
-    #if: ${{ github.event.label.name != 'repo-deletion' }}
     name: "Parse Deletion Issue"
     runs-on: ubuntu-latest
     outputs:
@@ -35,7 +33,6 @@ jobs:
           echo "repo_name=$(echo $JSON | jq -r '.name.text')" >> "$GITHUB_OUTPUT"
 
   handle:
-    #if: ${{ github.event.label.name != 'repo-deletion' }}
     needs:
       - parse
     uses: ./.github/workflows/repo-deletion.yml
@@ -43,7 +40,6 @@ jobs:
       repo_name: ${{ needs.parse.outputs.repo_name }}
 
   finish:
-    #if: ${{ always() && github.event.label.name != 'repo-deletion' }}
     if: ${{ always() }}
     needs:
       - notify
@@ -53,11 +49,11 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: ./.github/actions/comment-issue.yml
+      - uses: ./.github/actions/comment-issue
         if: failure()
         with:
           message: "@${{ github.event.issue.user.login }} the repository deletion failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
-      - uses: ./.github/actions/close-issue.yml
+      - uses: ./.github/actions/close-issue
         if: success()
         with:
           message: "@${{ github.event.issue.user.login }} your repository was successfully deleted"
