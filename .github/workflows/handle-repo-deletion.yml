@@ -4,6 +4,10 @@ on:
   workflow_call:
 
 jobs:
+  notify:
+    uses: ./.github/workflows/notify-issue-handling.yml
+    if: ${{ github.event.label.name != 'repo-deletion' }}
+
   parse:
     name: "Parse Deletion Issue"
     runs-on: ubuntu-latest
@@ -33,7 +37,7 @@ jobs:
 
   finish:
     needs:
-      - parse
+      - notify
       - handle
     name: "Handle Deletion Issue"
     runs-on: ubuntu-latest
