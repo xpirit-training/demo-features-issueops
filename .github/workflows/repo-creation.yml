@@ -44,6 +44,7 @@ on:
           - internal
           - private
         default: "public"
+      # TODO: make type choice and create workflow updating this on changes to the language directory
       language:
         description: "Language Template"
         required: true
