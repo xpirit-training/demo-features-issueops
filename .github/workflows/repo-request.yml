@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       project_name:
-        description: "Repo Name"
+        description: "Project Name"
         required: true
         type: string
       repo_name:
@@ -31,7 +31,7 @@ on:
   workflow_dispatch:
     inputs:
       project_name:
-        description: "Repo Name"
+        description: "Project Name"
         required: true
         type: string
         default: "TestProject"

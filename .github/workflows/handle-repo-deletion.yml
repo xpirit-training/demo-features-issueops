@@ -1,0 +1,56 @@
+name: Handle Repo Deletion
+
+on:
+  workflow_call:
+
+jobs:
+  parse:
+    name: "Parse Deletion Issue"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.label.name != 'repo-deletion' }}
+    outputs:
+      repo_name: ${{ steps.repo-name.outputs.repo_name }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - name: Parse Issue Form into JSON
+        if: ${{ github.event.label && github.event.label.name == 'repo-request' }}
+        id: parse
+        uses: zentered/issue-forms-body-parser@v2.0.0
+      - name: Get Repo Name
+        id: repo-name
+        env:
+          JSON: ${{ steps.parse.outputs.data }}
+        run: |
+          echo "repo_name=$(echo $JSON | jq -r '.name.text')" >> "$GITHUB_OUTPUT"
+
+  handle:
+    needs:
+      - parse
+    uses: ./.github/workflows/repo-deletion.yml
+    with:
+      repo_name: ${{ needs.parse.outputs.repo_name }}
+    if: ${{ github.event.label.name != 'repo-deletion' }}
+
+  finish:
+    needs:
+      - parse
+      - handle
+    name: "Handle Deletion Issue"
+    runs-on: ubuntu-latest
+    if: ${{ always() && github.event.label.name != 'repo-deletion' }}
+    steps:
+      - name: Comment Issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh issue comment ${{ github.event.issue.number }}
+          -b "@${{ github.event.issue.user.login }} the repository deletion failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
+      - name: Close Issue
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh issue close ${{ github.event.issue.number }} 
+          -r Completed 
+          -c "@${{ github.event.issue.user.login }} your repository was successfully deleted"
