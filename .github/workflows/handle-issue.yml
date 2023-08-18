@@ -4,6 +4,11 @@ on:
   issues:
     types: [labeled]
 
+permissions:
+  actions: write
+  contents: read
+  issues: write
+
 jobs:
   create-repo:
     if: github.event.label.name == 'repo-request'
