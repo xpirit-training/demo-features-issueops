@@ -5,8 +5,16 @@ on:
 
 jobs:
   notify:
-    if: ${{ github.event.label.name != 'repo-deletion' }}
-    uses: ./.github/workflows/notify-issue-handling.yml
+    if: ${{ github.event.label.name != 'repo-request' }}
+    name: "Notify Request Issue"
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - uses: ./.github/actions/comment-issue.yml
+        with:
+          message: "@${{ github.event.issue.user.login }} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
 
   parse:
     if: ${{ github.event.label.name != 'repo-request' }}
@@ -61,19 +69,11 @@ jobs:
     name: "Handle Request Issue"
     runs-on: ubuntu-latest
     steps:
-      - name: Comment Issue
+      - uses: ./.github/actions/comment-issue.yml
         if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: >-
-          gh issue comment ${{ github.event.issue.number }}
-          -b "@${{ github.event.issue.user.login }} the repository deletion failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
-      - name: Close Issue
+        with:
+          message: "@${{ github.event.issue.user.login }} the repository provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
+      - uses: ./.github/actions/close-issue.yml
         if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO_URL: ${{ needs.handle.outputs.repo_url }}
-        run: >-
-          gh issue close ${{ github.event.issue.number }} 
-          -r Completed 
-          -c "@${{ github.event.issue.user.login }} your repository was created and is now accessible here: $REPO_URL"
+        with:
+          message: "@${{ github.event.issue.user.login }} your repository was created and is now accessible here: $REPO_URL"
