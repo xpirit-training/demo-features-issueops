@@ -38,6 +38,7 @@ jobs:
     uses: ./.github/workflows/repo-deletion.yml
     with:
       repo_name: ${{ needs.parse.outputs.repo_name }}
+    secrets: inherit
 
   finish:
     if: ${{ always() }}

@@ -87,8 +87,9 @@ jobs:
           key: templates-${{ github.run_id }}
 
   create-repo:
+    needs:
+      - cache-templates
     name: "Create Repo"
-    needs: cache-templates
     runs-on: ubuntu-latest
     outputs:
       repo_url: ${{ steps.create-repo.outputs.repo_url }}

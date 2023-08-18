@@ -41,11 +41,11 @@ jobs:
           gh repo view $REPO_NAME
 
   delete-repo:
+    needs:
+      - lookup
     name: "Delete Repo"
     runs-on: ubuntu-latest
     environment: deletion
-    needs:
-      - lookup
     concurrency: delete-${{ inputs.repo_name }}
     steps:
       - name: Get Token

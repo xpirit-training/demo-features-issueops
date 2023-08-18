@@ -13,6 +13,8 @@ jobs:
   create-repo:
     if: github.event.label.name == 'repo-request'
     uses: ./.github/workflows/handle-repo-request.yml
+    secrets: inherit
   delete-repo:
     if: github.event.label.name == 'repo-deletion'
     uses: ./.github/workflows/handle-repo-deletion.yml
+    secrets: inherit
