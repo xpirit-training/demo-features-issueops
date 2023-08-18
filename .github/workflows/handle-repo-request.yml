@@ -65,6 +65,9 @@ jobs:
       - handle
     name: "Handle Request Issue"
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO_URL: ${{ needs.handle.outputs.repo_url }}
     steps:
       - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/comment-issue
