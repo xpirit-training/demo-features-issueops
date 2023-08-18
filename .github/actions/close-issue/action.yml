@@ -20,5 +20,5 @@ runs:
     - run: >-
         gh issue close ${{ inputs.issue }}
         -r ${{ inputs.reason }}
-        -b "${{ inputs.message }}"
+        -c "${{ inputs.message }}"
       shell: bash
