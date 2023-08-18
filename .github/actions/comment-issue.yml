@@ -1,0 +1,17 @@
+name: Comment Issue
+description: Add a comment to an issue
+
+inputs:
+  issue:
+    description: "Issue Number"
+    required: false
+    default: ${{ github.event.issue.number }}
+  message:
+    description: "Comment Message"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - run: gh issue comment ${{ inputs.issue }} -b "${{ inputs.message }}"
+      shell: bash

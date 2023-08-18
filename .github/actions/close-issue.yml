@@ -1,0 +1,24 @@
+name: Close Issue
+description: Close an issue
+
+inputs:
+  issue:
+    description: "Issue Number"
+    required: false
+    default: ${{ github.event.issue.number }}
+  reason:
+    description: "Reason for closing: {completed|not planned}"
+    required: false
+    default: "completed"
+  message:
+    description: "Comment Message"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - run: >-
+        gh issue close ${{ inputs.issue }}
+        -r ${{ inputs.reason }}
+        -b "${{ inputs.message }}"
+      shell: bash

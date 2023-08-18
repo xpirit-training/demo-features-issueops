@@ -43,7 +43,11 @@ on:
       visibility:
         description: "Repo Visibility"
         required: true
-        type: string
+        type: choice
+        options:
+          - public
+          - internal
+          - private
         default: "public"
       language:
         description: "Language Template"
