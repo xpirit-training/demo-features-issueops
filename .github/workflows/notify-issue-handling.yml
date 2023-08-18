@@ -5,7 +5,7 @@ on:
 
 jobs:
   notify:
-    name: "Parse Deletion Issue"
+    name: "Notify About Workflow"
     runs-on: ubuntu-latest
     steps:
       - name: Comment Issue

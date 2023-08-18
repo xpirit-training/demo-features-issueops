@@ -5,13 +5,13 @@ on:
 
 jobs:
   notify:
-    uses: ./.github/workflows/notify-issue-handling.yml
     if: ${{ github.event.label.name != 'repo-deletion' }}
+    uses: ./.github/workflows/notify-issue-handling.yml
 
   parse:
+    if: ${{ github.event.label.name != 'repo-deletion' }}
     name: "Parse Deletion Issue"
     runs-on: ubuntu-latest
-    if: ${{ github.event.label.name != 'repo-deletion' }}
     outputs:
       repo_name: ${{ steps.repo-name.outputs.repo_name }}
     steps:
@@ -28,20 +28,20 @@ jobs:
           echo "repo_name=$(echo $JSON | jq -r '.name.text')" >> "$GITHUB_OUTPUT"
 
   handle:
+    if: ${{ github.event.label.name != 'repo-deletion' }}
     needs:
       - parse
     uses: ./.github/workflows/repo-deletion.yml
     with:
       repo_name: ${{ needs.parse.outputs.repo_name }}
-    if: ${{ github.event.label.name != 'repo-deletion' }}
 
   finish:
+    if: ${{ always() && github.event.label.name != 'repo-deletion' }}
     needs:
       - notify
       - handle
     name: "Handle Deletion Issue"
     runs-on: ubuntu-latest
-    if: ${{ always() && github.event.label.name != 'repo-deletion' }}
     steps:
       - name: Comment Issue
         if: failure()
