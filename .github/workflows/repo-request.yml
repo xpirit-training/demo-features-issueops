@@ -19,11 +19,6 @@ on:
         description: "Language Template"
         required: true
         type: string
-      delete-repo:
-        description: "Delete repository at the end of the workflow run"
-        required: false
-        type: boolean
-        default: false
     outputs:
       repo_url:
         description: "The URL of the created repo"
@@ -54,11 +49,6 @@ on:
         required: true
         type: string
         default: "terraform"
-      delete-repo:
-        description: "Delete repository at the end of the workflow run"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   actions: write
