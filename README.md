@@ -1,6 +1,6 @@
 # Demo Repository for IssueOps
 
-Project demonstrating the power of issue based process handling using github issues and actions.
+Project demonstrating the power of issue based process handling using GitHub issues and actions.
 
 ## Issue Templates
 
