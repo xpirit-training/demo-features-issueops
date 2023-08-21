@@ -103,7 +103,7 @@ Workflow that is triggered by any changes to the workflow file `.github/workflow
             └── language-files
 ```
 
-The `org` is defined of a set of `company` which has a set of `teams`. Each team has a set of `projects`. In order to define so general properties on `company` as well as `team` level, each of those has a `metadata.yml` This file holds properties such as team manager oder team identifier.
+The `org` is defined of a set of `company` which has a set of `teams`. Each team has a set of `projects`. In order to define the general properties on `company` as well as `team` level, each of those has a `metadata.yml`. This file holds properties such as team manager or team identifier.
 
 Any change to the structure will trigger the workflow and populate the issue template.
 
