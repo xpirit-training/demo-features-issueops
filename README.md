@@ -115,6 +115,8 @@ Any change to the structure will trigger the workflow and populate the issue tem
 
 Action adding a comment on a given issue.
 
+The actions uses the [GitHub CLI](https://cli.github.com/) so provide an environment variable called [`GH_TOKEN`](https://cli.github.com/manual/gh_auth_login) with permissions to comment issues.
+
 Example usage:
 ```yaml
 jobs:
@@ -134,6 +136,8 @@ jobs:
 #### [close-issue](.github/actions/close-issue/action.yml)
 
 Action closing a given issue adding a comment.
+
+The actions uses the [GitHub CLI](https://cli.github.com/) so provide an environment variable called [`GH_TOKEN`](https://cli.github.com/manual/gh_auth_login) with permissions to close issues.
 
 Example usage:
 ```yaml
