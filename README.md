@@ -46,8 +46,8 @@ Workflow handling the [issue templates](#issue-templates).
 Depending on the given [label](https://docs.github.com/issues/using-labels-and-milestones-to-track-work/managing-labels) the workflow executes the corresponding [subworkflow](https://docs.github.com/actions/using-workflows/reusing-workflows).
 
 The following subworkflows may be triggered:
-- [repository request](#handle-repository-request-handle-repo-requestyml)
-- [repository deletion](#handle-repository-deletion-handle-repo-deletionyml)
+- [Repository request](#handle-repository-request-handle-repo-requestyml)
+- [Repository deletion](#handle-repository-deletion-handle-repo-deletionyml)
 
 #### Handle Repository Request: [handle-repo-request.yml](.github/workflows/handle-repo-request.yml)
 
