@@ -73,7 +73,7 @@ Workflow deleting a repository by name.
 
 #### Update Repo Request Issue Template: [update-repo-request-template.yml](.github/workflows/update-repo-request-template.yml)
 
-Workflow that is triggered by any changes to the workflow file `.github/workflows/update-repo-request-template.yml` òr the `./org` or `./templates/languages` directories. The workflow reads the contents from the folder expecting the following structure:
+Workflow that is triggered by any changes to the workflow file `.github/workflows/update-repo-request-template.yml` or the `./org` or `./templates/languages` directories. The workflow reads the contents from the folder expecting the following structure:
 
 ```
 .
