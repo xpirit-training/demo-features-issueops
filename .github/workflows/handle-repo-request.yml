@@ -50,7 +50,7 @@ jobs:
   handle:
     needs:
       - parse
-    uses: ./.github/workflows/repo-request.yml
+    uses: ./.github/workflows/repo-creation.yml
     with:
       project_name: ${{ needs.parse.outputs.project_name }}
       repo_name: ${{ needs.parse.outputs.repo_name }}
