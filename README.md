@@ -14,7 +14,7 @@ The dropdown selections are automatically updated by the [repo request update](#
 
 #### Repository Deletion: [repo-deletion.yml](.github/ISSUE_TEMPLATE/repo-deletion.yml)
 
-Simple issue form just collection the name of the repo which shall be deleted via [workflow](#handle-repository-deletion-handle-repo-deletionyml).
+Simple issue form taking the name of the repository as input which is supposed to be deleted via [workflow](#handle-repository-deletion-handle-repo-deletionyml).
 
 ## Workflows
 
