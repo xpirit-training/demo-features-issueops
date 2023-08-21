@@ -138,9 +138,3 @@ jobs:
           git add -A
           git commit -m "$CI_COMMIT_MESSAGE"
           git push --set-upstream origin $DEFAULT_BRANCH
-      - name: Delete Repo
-        if: ${{ failure() || github.event.inputs.delete-repo == 'true' }}
-        env:
-          GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
-        run: |
-          gh repo delete $REPO_OWNER/$REPO_NAME --yes
