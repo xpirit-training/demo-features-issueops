@@ -53,7 +53,29 @@ echo
 echo CI_COMMIT_USER=$USER
 echo CI_COMMIT_USER_MAIL=$ID+$USER@users.noreply.github.com
 ```
+As an alternative, the user name and email can be fetched via browser as well. Open a browser and use the following url
 
+`
+https://api.github.com/users/{name-of-github-app}[bot]
+`
+
+where `{name-of-github-app}` is the name assigned to the app in the respective app settings. It is important that `[bot]` follows the name of the app.
+
+The request returns a JSON that is displayed in the browser. From that request the value of the key `"id"` is required to assemble the user name and email address as following
+
+*User Name*
+
+`
+{name-of-github-app}[bot]
+`
+
+*User Email*
+
+`
+{user-id}+{name-of-github-app}[bot]@users.noreply.github.com
+`
+
+where `{user-id}` is the value of the response key `"id"` and `{name-of-github-app}` is the name of the app. Remember to add `[bot]`.
 ### Secrets
 
 The following variables have to be configured:
