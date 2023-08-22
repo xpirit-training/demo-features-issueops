@@ -19,6 +19,10 @@ on:
         description: "Language Template"
         required: true
         type: string
+      admins:
+          description: "Admins"
+          required: false
+          type: string
     outputs:
       repo_url:
         description: "The URL of the created repo"
@@ -50,6 +54,11 @@ on:
         required: true
         type: string
         default: "terraform"
+      admins:
+        description: "Admins"
+        required: false
+        type: string
+        default: "spindev"
 
 permissions:
   actions: write
@@ -63,6 +72,7 @@ env:
   PROJECT_NAME: ${{ inputs.project_name }}
   LANGUAGE: ${{ inputs.language }}
   VISIBILITY: ${{ inputs.visibility }}
+  ADMINS: ${{ inputs.admins }}
 
 jobs:
   cache-templates:
@@ -115,6 +125,21 @@ jobs:
         run: |
           REPO_URL=$(gh repo create $REPO_OWNER/$REPO_NAME --$VISIBILITY --clone)
           echo "repo_url=$REPO_URL" >> "$GITHUB_OUTPUT"
+      - name: Add admins to repo
+        id: add-admins
+        if: env.ADMINS
+        env:
+          GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
+        run: |
+          for admin in $(echo $ADMINS | tr ", " "\n")
+          do
+            gh api \
+            --method PUT \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/$REPO_OWNER/$REPO_NAME/collaborators/$ADMIN \
+            -f permission='admin'
+          done
       - name: Copy Files
         working-directory: ./${{ inputs.repo_name }}
         run: |

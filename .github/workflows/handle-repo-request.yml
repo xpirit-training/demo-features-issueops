@@ -46,6 +46,7 @@ jobs:
         run: |
           echo "visibility=$(echo $JSON | jq -r '.visibility.text')" >> "$GITHUB_OUTPUT"
           echo "language=$(echo $JSON | jq -r '.language.text')" >> "$GITHUB_OUTPUT"
+          echo "admins=$(echo $JSON | jq -r .admins.text)" >> "$GITHUB_OUTPUT"
 
   handle:
     needs:
@@ -56,6 +57,7 @@ jobs:
       repo_name: ${{ needs.parse.outputs.repo_name }}
       visibility: ${{ needs.parse.outputs.visibility }}
       language: ${{ needs.parse.outputs.language }}
+      admins: $ {{ needs.parse.outputs.admins }}
     secrets: inherit
 
   finish:
