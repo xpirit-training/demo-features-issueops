@@ -74,7 +74,7 @@ jobs:
         env:
           CI_COMMIT_MESSAGE: "chore(org): Update Issue Template File"
         run: |
-          git config --global user.name '${{ vars.CI_COMMIT_USER }}''
+          git config --global user.name '${{ vars.CI_COMMIT_USER }}'
           git config --global user.email '${{ vars.CI_COMMIT_USER_MAIL }}'
           git add $ISSUE_TEMPLATE_FILE
           git commit -m "$CI_COMMIT_MESSAGE"
