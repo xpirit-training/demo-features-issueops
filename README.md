@@ -35,7 +35,48 @@ A GitHub app with the following permissions is required:
 - `Read access to metadata`
 - `Read and write access to administration, code, and issues`
 
-### Variables
+
+It is possible to perform git operations using the apps identity. Retrieve the required username and email as follows:
+
+```bash
+# replace with your app name
+APP_NAME=xpirit-training-bot
+
+# create user name
+USER=${APP_NAME}[bot]
+
+# retrieve app ID from github
+ID=$(curl -s -g https://api.github.com/users/$USER | jq '.id')
+
+# display data
+echo
+echo CI_COMMIT_USER=$USER
+echo CI_COMMIT_USER_MAIL=$ID+$USER@users.noreply.github.com
+```
+As an alternative, the user name and email can be fetched via browser as well. Open a browser and use the following url
+
+`
+https://api.github.com/users/{name-of-github-app}[bot]
+`
+
+where `{name-of-github-app}` is the name assigned to the app in the respective app settings. It is important that `[bot]` follows the name of the app.
+
+The request returns a JSON that is displayed in the browser. From that request the value of the key `"id"` is required to assemble the user name and email address as following
+
+*User Name*
+
+`
+{name-of-github-app}[bot]
+`
+
+*User Email*
+
+`
+{user-id}+{name-of-github-app}[bot]@users.noreply.github.com
+`
+
+where `{user-id}` is the value of the response key `"id"` and `{name-of-github-app}` is the name of the app. Remember to add `[bot]`.
+### Secrets
 
 The following variables have to be configured:
 
@@ -43,14 +84,18 @@ The following variables have to be configured:
 | ---------- | -------------------------------------------- |
 | GH_APP_KEY | Private key of the [GitHub App](#github-app) |
 
-### Secrets
+### Variables
 
 The following variables have to be configured:
 
-| Key          | Description                         |
-| ------------ | ----------------------------------- |
-| GH_APP_ID    | ID of the [GitHub App](#github-app) |
-| ORGANIZATION | GitHub organization                 |
+| Key                 | Description                                |
+| ------------------- | ------------------------------------------ |
+| GH_APP_ID           | ID of the [GitHub App](#github-app)        |
+| ORGANIZATION        | GitHub organization                        |
+| CI_COMMIT_USER      | Name of the user for automated git tasks*  |
+| CI_COMMIT_USER_MAIL | Email of the user for automated git tasks* |
+
+*check [GitHub App](#github-app) to see how to retrieve them
 
 ## Issue Templates
 
