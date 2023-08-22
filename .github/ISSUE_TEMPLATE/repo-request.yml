@@ -55,3 +55,9 @@ body:
         - terraform
     validations:
       required: true
+  - type: input
+    attributes:
+      label: Admins
+      description: A comma seperated list of GitHub users to get admin access to the repository
+    validations:
+      required: false
