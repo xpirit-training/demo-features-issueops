@@ -26,22 +26,22 @@ The following environments have to be set up:
 #### deletion
 
 The deletion environment is used to enforce a workflow review before repository deletion.
-Therefore the environment has to be set up to require reviews (see [docs](https://docs.github.com/en/actions/managing-workflow-runs/reviewing-deployments) to find out how to do this).
+Therefore, the environment has to be set up to require reviews (see [docs](https://docs.github.com/en/actions/managing-workflow-runs/reviewing-deployments) to find out how this can be achieved).
 
 ### GitHub App
 
-A github app with the following permissions is required:
+A GitHub app with the following permissions is required:
 
-`Read access to metadata`
-`Read and write access to administration, code, and issues`
+- `Read access to metadata`
+- `Read and write access to administration, code, and issues`
 
 ### Variables
 
 The following variables have to be configured:
 
-| Key        | Description                                 |
-| ---------- | ------------------------------------------- |
-| GH_APP_KEY | Secret key of the [GitHub App](#github-app) |
+| Key        | Description                                  |
+| ---------- | -------------------------------------------- |
+| GH_APP_KEY | Private key of the [GitHub App](#github-app) |
 
 ### Secrets
 
