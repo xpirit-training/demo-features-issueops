@@ -35,7 +35,26 @@ A GitHub app with the following permissions is required:
 - `Read access to metadata`
 - `Read and write access to administration, code, and issues`
 
-### Variables
+
+It is possible to perform git operations using the apps identity. Retrieve the required username and email as follows:
+
+```bash
+# replace with your app name
+APP_NAME=xpirit-training-bot
+
+# create user name
+USER=${APP_NAME}[bot]
+
+# retrieve app ID from github
+ID=$(curl -s -g https://api.github.com/users/$USER | jq '.id')
+
+# display data
+echo
+echo CI_COMMIT_USER=$USER
+echo CI_COMMIT_USER_MAIL=$ID+$USER@users.noreply.github.com
+```
+
+### Secrets
 
 The following variables have to be configured:
 
@@ -43,14 +62,18 @@ The following variables have to be configured:
 | ---------- | -------------------------------------------- |
 | GH_APP_KEY | Private key of the [GitHub App](#github-app) |
 
-### Secrets
+### Variables
 
 The following variables have to be configured:
 
-| Key          | Description                         |
-| ------------ | ----------------------------------- |
-| GH_APP_ID    | ID of the [GitHub App](#github-app) |
-| ORGANIZATION | GitHub organization                 |
+| Key                 | Description                                |
+| ------------------- | ------------------------------------------ |
+| GH_APP_ID           | ID of the [GitHub App](#github-app)        |
+| ORGANIZATION        | GitHub organization                        |
+| CI_COMMIT_USER      | Name of the user for automated git tasks*  |
+| CI_COMMIT_USER_MAIL | Email of the user for automated git tasks* |
+
+*check [GitHub App](#github-app) to see how to retrieve them
 
 ## Issue Templates
 
