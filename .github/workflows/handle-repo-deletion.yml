@@ -40,23 +40,34 @@ jobs:
       repo_name: ${{ needs.parse.outputs.repo_name }}
     secrets: inherit
 
-  finish:
-    if: ${{ always() }}
+  comment:
+    if: ${{ failure() }}
     needs:
       - notify
       - parse
       - handle
-    name: "Handle Deletion Issue"
+    name: "Comment Deletion Issue"
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/comment-issue
-        if: ${{ failure() }}
         with:
           message: "@${{ github.event.issue.user.login }} the repository deletion failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
+
+  close:
+    if: ${{ success() }}
+    needs:
+      - notify
+      - parse
+      - handle
+    name: "Close Deletion Issue"
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/close-issue
-        if: ${{ success() }}
         with:
           message: "@${{ github.event.issue.user.login }} your repository was successfully deleted"

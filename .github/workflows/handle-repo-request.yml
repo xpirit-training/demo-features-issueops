@@ -58,13 +58,13 @@ jobs:
       language: ${{ needs.parse.outputs.language }}
     secrets: inherit
 
-  finish:
-    if: ${{ always() }}
+  comment:
+    if: ${{ failure() }}
     needs:
       - notify
       - parse
       - handle
-    name: "Handle Request Issue"
+    name: "Comment Request Issue"
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -72,10 +72,22 @@ jobs:
     steps:
       - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/comment-issue
-        if: ${{ failure() }}
         with:
           message: "@${{ github.event.issue.user.login }} the repository provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
+
+  close:
+    if: ${{ success() }}
+    needs:
+      - notify
+      - parse
+      - handle
+    name: "Close Request Issue"
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO_URL: ${{ needs.handle.outputs.repo_url }}
+    steps:
+      - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/close-issue
-        if: ${{ success() }}
         with:
           message: "@${{ github.event.issue.user.login }} your repository was created and is now accessible here: $REPO_URL"
