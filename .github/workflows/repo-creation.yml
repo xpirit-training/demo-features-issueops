@@ -20,9 +20,9 @@ on:
         required: true
         type: string
       admins:
-          description: "Admins"
-          required: false
-          type: string
+        description: "Admins"
+        required: false
+        type: string
     outputs:
       repo_url:
         description: "The URL of the created repo"
@@ -55,7 +55,7 @@ on:
         type: string
         default: "terraform"
       admins:
-        description: "Admins"
+        description: "admins"
         required: false
         type: string
         default: "spindev"
@@ -125,6 +125,9 @@ jobs:
         run: |
           REPO_URL=$(gh repo create $REPO_OWNER/$REPO_NAME --$VISIBILITY --clone)
           echo "repo_url=$REPO_URL" >> "$GITHUB_OUTPUT"
+      - name: Get project admins
+        run: |
+          
       - name: Add admins to repo
         id: add-admins
         if: env.ADMINS

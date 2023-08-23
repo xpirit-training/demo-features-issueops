@@ -23,6 +23,7 @@ jobs:
       repo_name: ${{ steps.repo-name.outputs.repo_name }}
       visibility: ${{ steps.attributes.outputs.visibility }}
       language: ${{ steps.attributes.outputs.language }}
+      admins: ${{ steps.attributes.outputs.admins }}
     steps:
       - uses: actions/checkout@v3.3.0
       - name: Parse Issue Form into JSON
@@ -37,6 +38,7 @@ jobs:
           TEAM=$(echo $JSON | jq -r '.team.text' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
           PROJECT=$(echo $JSON | jq -r '.project.text' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
           RNAME=$(echo $JSON | jq -r '.name.text' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          ADMINS=$(yq .manager ./org/companies/$COMPANY/teams/$TEAM/metadata.yml)
           echo "project_name"="${RNAME}" >> "$GITHUB_OUTPUT"
           echo "repo_name=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}" >> "$GITHUB_OUTPUT"
       - name: Get Attrbutes
@@ -46,8 +48,8 @@ jobs:
         run: |
           echo "visibility=$(echo $JSON | jq -r '.visibility.text')" >> "$GITHUB_OUTPUT"
           echo "language=$(echo $JSON | jq -r '.language.text')" >> "$GITHUB_OUTPUT"
-          echo "admins=$(echo $JSON | jq -r .admins.text)" >> "$GITHUB_OUTPUT"
-
+          echo "admins=${ADMINS}, $(echo $JSON | jq -r .additional admins.text)" >> "$GITHUB_OUTPUT"
+          
   handle:
     needs:
       - parse
@@ -57,7 +59,7 @@ jobs:
       repo_name: ${{ needs.parse.outputs.repo_name }}
       visibility: ${{ needs.parse.outputs.visibility }}
       language: ${{ needs.parse.outputs.language }}
-      admins: $ {{ needs.parse.outputs.admins }}
+      admins: ${{ needs.parse.outputs.admins }}
     secrets: inherit
 
   finish:

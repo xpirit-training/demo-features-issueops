@@ -7,7 +7,10 @@
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/actionlint:1": {},
 		"ghcr.io/guiyomh/features/vim:0": {},
-		"ghcr.io/eitsupi/devcontainer-features/jq-likes:1": {},
+		"ghcr.io/eitsupi/devcontainer-features/jq-likes:1": {
+			"jqVersion": "os-provided",
+			"yqVersion": "latest"
+		},
 		"ghcr.io/devcontainers/features/github-cli:1": {},
 		"ghcr.io/devcontainers-contrib/features/terraform-asdf:2": {},
 		"ghcr.io/devcontainers/features/python:1": {}
