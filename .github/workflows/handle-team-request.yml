@@ -44,7 +44,7 @@ jobs:
     secrets: inherit
 
   comment:
-    if: ${{ failure() }}
+    if: failure()
     needs:
       - notify
       - parse
@@ -61,7 +61,7 @@ jobs:
           message: "@${{ github.event.issue.user.login }} the team provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
 
   close:
-    if: ${{ success() }}
+    if: success()
     needs:
       - notify
       - parse
