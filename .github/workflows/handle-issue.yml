@@ -10,13 +10,18 @@ permissions:
   issues: write
 
 jobs:
-  create-repo:
-    name: "Create Repository"
+  repo-request:
+    name: "Request a repository"
     if: github.event.label.name == 'repo-request'
     uses: ./.github/workflows/handle-repo-request.yml
     secrets: inherit
-  delete-repo:
-    name: "Delete Repository"
+  repo-deletion:
+    name: "Delete a repository"
     if: github.event.label.name == 'repo-deletion'
     uses: ./.github/workflows/handle-repo-deletion.yml
     secrets: inherit
+  team-request:
+      name: "Request a team"
+      if: github.event.label.name == 'team-request'
+      uses: ./.github/workflows/handle-team-request.yml
+      secrets: inherit

@@ -1,0 +1,72 @@
+name: Create New Team
+
+on:
+  workflow_call:
+    inputs:
+      team_name:
+        description: "Team Name"
+        required: true
+        type: string
+      description:
+        description: "Team Description"
+        required: false
+        type: string
+    outputs:
+      team_url:
+        description: "The URL of the created team"
+        value: ${{ jobs.create-team.outputs.team_url }}
+  workflow_dispatch:
+    inputs:
+      team_name:
+        description: "Team Name"
+        required: true
+        type: string
+        default: "MyTestTeam"
+      description:
+        description: "Team Description"
+        required: true
+        type: string
+        default: "MyTestTeamDescription"
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+
+env:
+  DEFAULT_BRANCH: main
+  TEAM_NAME: ${{ inputs.team_name }}
+  DESCRIPTION: ${{ inputs.description }}
+  ORGANIZATION: ${{ vars.ORGANIZATION }}
+
+jobs:
+  create-team:
+    name: "Create Team"
+    runs-on: ubuntu-latest
+    outputs:
+      team_url: ${{ steps.create-team.outputs.team_url }}
+    steps:
+      - name: Get Token
+        id: get-workflow-token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ vars.GH_APP_ID }}
+          application_private_key: ${{ secrets.GH_APP_KEY }}
+          organization: ${{ vars.ORGANIZATION }}
+      - name: Create Team
+        id: create-team
+        env:
+          GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
+        run: |
+          TEAM_URL=$(gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /orgs/$ORGANIZATION/teams \
+            -f name='$TEAM_NAME' \
+            -f description='$DESCRIPTION' \
+            -f permission='push' \
+            -f notification_setting='notifications_enabled' \
+            -f privacy='closed' | jq .html_url)
+          echo "team_url=$TEAM_URL" >> "$GITHUB_OUTPUT"
+
