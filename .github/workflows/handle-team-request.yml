@@ -1,0 +1,78 @@
+name: Handle Team Request
+
+on:
+  workflow_call:
+
+jobs:
+  notify:
+    name: "Notify Request Issue"
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - uses: ./.github/actions/comment-issue
+        with:
+          message: "@${{ github.event.issue.user.login }} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
+
+  parse:
+    name: "Parse Request Issue"
+    runs-on: ubuntu-latest
+    outputs:
+      team_name: ${{ steps.attributes.outputs.team_name }}
+      description: ${{ steps.attributes.outputs.description }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - name: Parse Issue Form into JSON
+        id: parse
+        uses: zentered/issue-forms-body-parser@v2.0.0
+      - name: Get Attrbutes
+        id: attributes
+        env:
+          JSON: ${{ steps.parse.outputs.data }}
+        run: |
+          echo "team_name=$(echo $JSON | jq -r '.name.text')" >> "$GITHUB_OUTPUT"
+          echo "description=$(echo $JSON | jq -r '.description.text')" >> "$GITHUB_OUTPUT"
+
+  handle:
+    needs:
+      - parse
+    uses: ./.github/workflows/team-creation.yml
+    with:
+      team_name: ${{ needs.parse.outputs.team_name }}
+      description: ${{ needs.parse.outputs.description }}
+    secrets: inherit
+
+  comment:
+    if: ${{ failure() }}
+    needs:
+      - notify
+      - parse
+      - handle
+    name: "Comment Request Issue"
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TEAM_URL: ${{ needs.handle.outputs.team_url }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - uses: ./.github/actions/comment-issue
+        with:
+          message: "@${{ github.event.issue.user.login }} the team provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
+
+  close:
+    if: ${{ success() }}
+    needs:
+      - notify
+      - parse
+      - handle
+    name: "Close Request Issue"
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TEAM_URL: ${{ needs.handle.outputs.team_url }}
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - uses: ./.github/actions/close-issue
+        with:
+          message: "@${{ github.event.issue.user.login }} your team was created and is now accessible here: $TEAM_URL"
