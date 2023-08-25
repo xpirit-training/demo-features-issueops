@@ -69,10 +69,3 @@ jobs:
             -f notification_setting='notifications_enabled' \
             -f privacy='closed')
           echo "team_url=$(echo $JSON_RESULT | jq .html_url)" >> "$GITHUB_OUTPUT"
-          gh api \
-            --method PUT \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            /orgs/$ORGANIZATION/teams/$(echo $JSON_RESULT | jq .slug)/memberships/${{ github.event.issue.user.login }} \
-            -f role='maintainer'
-
