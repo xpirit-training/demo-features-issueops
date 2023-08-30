@@ -9,11 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      USER: ${{ github.event.issue.user.login }}
     steps:
       - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/comment-issue
         with:
-          message: "@${{ github.event.issue.user.login }} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
+          message: "@${USER} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
 
   parse:
     name: "Parse Deletion Issue"
@@ -31,6 +32,19 @@ jobs:
           JSON: ${{ steps.parse.outputs.data }}
         run: |
           echo "repo_name=$(echo $JSON | jq -r '.name.text')" >> "$GITHUB_OUTPUT"
+      - name: Summarize
+        env:
+          REPO_ORG: ${{ vars.ORGANIZATION }}
+          REPO_NAME: ${{ steps.repo-name.outputs.repo_name }}
+          USER: ${{ github.event.issue.user.login }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo "# Request Repo Deletion"
+            echo "Repository: [$REPO_NAME](${GITHUB_SERVER_URL}/${REPO_ORG}${REPO_NAME})"
+            echo "User: @${USER}"
+            echo "Issue: #${ISSUE_NUMBER}"
+          } >> $GITHUB_STEP_SUMMARY
 
   handle:
     needs:
@@ -66,8 +80,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      USER: ${{ github.event.issue.user.login }}
     steps:
       - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/close-issue
         with:
-          message: "@${{ github.event.issue.user.login }} your repository was successfully deleted"
+          message: "@${USER} your repository was successfully deleted"
