@@ -41,9 +41,9 @@ jobs:
         run: |
           {
             echo "# Request Repo Deletion"
-            echo "Repository: [$REPO_NAME](${GITHUB_SERVER_URL}/${REPO_ORG}${REPO_NAME})"
+            echo "Repository: [$REPO_NAME](${GITHUB_SERVER_URL}/${REPO_ORG}/${REPO_NAME})"
             echo "User: @${USER}"
-            echo "Issue: #${ISSUE_NUMBER}"
+            echo "Issue: [#${ISSUE_NUMBER}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER})"
           } >> $GITHUB_STEP_SUMMARY
 
   handle:
