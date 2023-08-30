@@ -1,4 +1,4 @@
-name: Create New Team
+name: Create New GitHub Team
 
 on:
   workflow_call:
@@ -14,7 +14,7 @@ on:
     outputs:
       team_url:
         description: "The URL of the created team"
-        value: ${{ jobs.create-team.outputs.team_url }}
+        value: ${{ jobs.create-github-team.outputs.team_url }}
   workflow_dispatch:
     inputs:
       team_name:
@@ -40,11 +40,13 @@ env:
   ORGANIZATION: ${{ vars.ORGANIZATION }}
 
 jobs:
-  create-team:
-    name: "Create Team"
+  create-github-team:
+    name: "Create GitHub Team"
     runs-on: ubuntu-latest
+    environment: github-team
+    concurrency: create-${{ inputs.team_name }}
     outputs:
-      team_url: ${{ steps.create-team.outputs.team_url }}
+      team_url: ${{ steps.create-github-team.outputs.team_url }}
     steps:
       - name: Get Token
         id: get-workflow-token
@@ -53,8 +55,8 @@ jobs:
           application_id: ${{ vars.GH_APP_ID }}
           application_private_key: ${{ secrets.GH_APP_KEY }}
           organization: ${{ vars.ORGANIZATION }}
-      - name: Create Team
-        id: create-team
+      - name: Create GitHub Team
+        id: create-github-team
         env:
           GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
         run: |

@@ -1,4 +1,4 @@
-name: Handle Team Request
+name: Handle GitHub Team Request
 
 on:
   workflow_call:
