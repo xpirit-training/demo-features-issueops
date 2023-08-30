@@ -162,6 +162,21 @@ The following subworkflows may be triggered:
 
 Workflow parsing the [repository request](#repository-request-repo-requestyml) issue data and commenting / closing the issue depending on the workflow success.
 
+The repository name is created with the following pattern:
+
+`[company ID]-[team ID]-[project name]-[repo name]`
+
+**Example:**
+
+```
+Repo: My-Test
+Company: Xpirit (1337)
+Team: T1-Team 1
+Project: project 1
+
+Full Repo Name: 1337-t1-project-1-my-test
+```
+
 The workflow further triggers the [repository creation](#create-repository-repo-creationyml) workflow.
 
 #### Handle Repository Deletion: [handle-repo-deletion.yml](.github/workflows/handle-repo-deletion.yml)

@@ -33,10 +33,13 @@ jobs:
         env:
           JSON: ${{ steps.parse.outputs.data }}
         run: |
-          COMPANY=$(echo $JSON | jq -r '.company.text'  | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')    
-          TEAM=$(echo $JSON | jq -r '.team.text' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          PROJECT=$(echo $JSON | jq -r '.project.text' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-          RNAME=$(echo $JSON | jq -r '.name.text' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+          function github_name() {
+            echo $1 | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-z0-9ß-ü \-]*//g' -e 's/ä/ae/g' -e 's/ö/oe/g' -e 's/ü/ue/g' -e 's/ß/ss/g' | sed -r 's/[\t ]+/-/g'
+          }
+          COMPANY=$(github_name "$(echo $JSON | jq -r '.company.text' | sed -E 's/.*\((.*)\)/\1/')")
+          TEAM=$(github_name "$(echo $JSON | jq -r '.team.text' | sed -E 's/(.*)-.*/\1/')")
+          PROJECT=$(github_name "$(echo $JSON | jq -r '.project.text')")
+          RNAME=$(github_name "$(echo $JSON | jq -r '.name.text')")
           echo "project_name"="${RNAME}" >> "$GITHUB_OUTPUT"
           echo "repo_name=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}" >> "$GITHUB_OUTPUT"
       - name: Get Attrbutes
