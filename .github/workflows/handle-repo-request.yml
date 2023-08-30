@@ -32,9 +32,10 @@ jobs:
         id: repo-name
         env:
           JSON: ${{ steps.parse.outputs.data }}
+          LC_ALL: "C"
         run: |
           function github_name() {
-            echo $1 | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-z0-9ß-ü \-]*//g' -e 's/ä/ae/g' -e 's/ö/oe/g' -e 's/ü/ue/g' -e 's/ß/ss/g' | sed -r 's/[\t ]+/-/g'
+            echo $1 | tr '[:upper:]' '[:lower:]' | sed -r 's/[^a-z0-9ß-ü \-]*//g' | sed -e 's/ä/ae/g' -e 's/ö/oe/g' -e 's/ü/ue/g' -e 's/ß/ss/g' | sed -r 's/[\t ]+/-/g'
           }
           COMPANY=$(github_name "$(echo $JSON | jq -r '.company.text' | sed -E 's/.*\((.*)\)/\1/')")
           TEAM=$(github_name "$(echo $JSON | jq -r '.team.text' | sed -E 's/(.*)-.*/\1/')")
