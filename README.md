@@ -29,7 +29,7 @@ The following environments have to be set up:
 The deletion environment is used to enforce a workflow review before repository deletion.
 Therefore, the environment has to be set up to require reviews (see [docs](https://docs.github.com/en/actions/managing-workflow-runs/reviewing-deployments) to find out how this can be achieved).
 
-#### githubt-team
+#### github-team
 
 The github-team environment is used to enforce a workflow review before team creation.
 Therefore, the environment has to be set up to require reviews (see [docs](https://docs.github.com/en/actions/managing-workflow-runs/reviewing-deployments) to find out how this can be achieved).
