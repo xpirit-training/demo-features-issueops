@@ -34,9 +34,7 @@ Therefore, the environment has to be set up to require reviews (see [docs](https
 A GitHub app with the following permissions is required:
 
 - `Read access to metadata`
-- `Read and write access to administration, code, and issues`
-- `Read and write access to members (organization)`
-
+- `Read and write access to administration, code, issues and members`
 
 It is possible to perform git operations using the apps identity. Retrieve the required username and email as follows:
 
@@ -116,7 +114,6 @@ Simple issue form taking the name of the repository as input which is supposed t
 #### Team Request: [team-request.yml](.github/ISSUE_TEMPLATE/team-request.yml)
 
 Simple issue form taking the name and the description of the team as input which is supposed to be created via [workflow](#handle-team-request-handle-team-requestyml).
-
 
 ## Workflows
 
