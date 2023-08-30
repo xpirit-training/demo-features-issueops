@@ -37,7 +37,7 @@ jobs:
   handle:
     needs:
       - parse
-    uses: ./.github/workflows/team-creation.yml
+    uses: ./.github/workflows/github-team-creation.yml
     with:
       team_name: ${{ needs.parse.outputs.team_name }}
       description: ${{ needs.parse.outputs.description }}
