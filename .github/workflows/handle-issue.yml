@@ -21,7 +21,7 @@ jobs:
     uses: ./.github/workflows/handle-repo-deletion.yml
     secrets: inherit
   team-request:
-      name: "Request a team"
-      if: github.event.label.name == 'team-request'
-      uses: ./.github/workflows/handle-team-request.yml
+      name: "Request a GitHub team"
+      if: github.event.label.name == 'github-team-request'
+      uses: ./.github/workflows/handle-github-team-request.yml
       secrets: inherit

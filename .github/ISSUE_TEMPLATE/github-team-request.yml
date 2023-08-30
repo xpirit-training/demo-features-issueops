@@ -1,8 +1,8 @@
 ---
-name: Team request
-description: Request a new team for the current organization. The requesting user will automatically added as a maintainer for the new team.
-title: "[Team Request] "
-labels: [team-request]
+name: GitHub team request
+description: Request a new GitHub team for the current organization. The requesting user will automatically added as a maintainer for the new team.
+title: "[Github Team Request]"
+labels: [github-team-request]
 body:
   - type: input
     attributes:

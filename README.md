@@ -18,6 +18,7 @@ The following issue labels have to be created:
 
 - `repo-request`
 - `repo-deletion`
+- `github-team-request`
 
 ### Environments
 
@@ -28,13 +29,17 @@ The following environments have to be set up:
 The deletion environment is used to enforce a workflow review before repository deletion.
 Therefore, the environment has to be set up to require reviews (see [docs](https://docs.github.com/en/actions/managing-workflow-runs/reviewing-deployments) to find out how this can be achieved).
 
+#### githubt-team
+
+The github-team environment is used to enforce a workflow review before team creation.
+Therefore, the environment has to be set up to require reviews (see [docs](https://docs.github.com/en/actions/managing-workflow-runs/reviewing-deployments) to find out how this can be achieved).
+
 ### GitHub App
 
 A GitHub app with the following permissions is required:
 
 - `Read access to metadata`
-- `Read and write access to administration, code, and issues`
-
+- `Read and write access to administration, code, issues and members`
 
 It is possible to perform git operations using the apps identity. Retrieve the required username and email as follows:
 
@@ -111,6 +116,10 @@ The dropdown selections are automatically updated by the [repo request update](#
 
 Simple issue form taking the name of the repository as input which is supposed to be deleted via [workflow](#handle-repository-deletion-handle-repo-deletionyml).
 
+#### Team Request: [github-team-request.yml](.github/ISSUE_TEMPLATE/github-team-request.yml)
+
+Simple issue form taking the name and the description of the GitHub team as input which is supposed to be created via [workflow](#handle-github-team-request-handle-github-team-requestyml).
+
 ## Workflows
 
 ### Issue Handling
@@ -127,12 +136,16 @@ flowchart TD
     style A fill:#d6d6d6,stroke:#000000,stroke-dasharray: 5 5
     B -->|"[label=repo-request]"| C(Handle Repository Request Issue)
     B -->|"[label=repo-deletion]"| D(Handle Repository Deletion Issue)
-    C -->|repo attributes| E(Create Repository)
-    D -->|repo name| F(Delete Repository)
-    E --> G(Repository Created)
-    style G fill:#d6d6d6,stroke:#000000,stroke-dasharray: 5 5
-    F --> H(Repository Deleted)
-    style H fill:#d6d6d6,stroke:#000000,stroke-dasharray: 5 5
+    B -->|"[label=github-team-request]"| E(Handle GitHub Team Request Issue)
+    C -->|repo attributes| F(Create Repository)
+    D -->|repo name| G(Delete Repository)
+    E -->|team name, description| H(Create GitHub Team)
+    F --> I(Repository Created)
+    style I fill:#d6d6d6,stroke:#000000,stroke-dasharray: 5 5
+    G --> J(Repository Deleted)
+    style J fill:#d6d6d6,stroke:#000000,stroke-dasharray: 5 5
+    H --> K(GitHub Team created)
+    style K fill:#d6d6d6,stroke:#000000,stroke-dasharray: 5 5
 ```
 
 #### Handle Issue: [handle-issue.yml](.github/workflows/handle-issue.yml)
@@ -143,6 +156,7 @@ Depending on the given [label](https://docs.github.com/issues/using-labels-and-m
 The following subworkflows may be triggered:
 - [Repository request](#handle-repository-request-handle-repo-requestyml)
 - [Repository deletion](#handle-repository-deletion-handle-repo-deletionyml)
+- [GitHub team request](#handle-github-team-request-handle-github-team-requestyml)
 
 #### Handle Repository Request: [handle-repo-request.yml](.github/workflows/handle-repo-request.yml)
 
@@ -156,6 +170,12 @@ Workflow parsing the [repository deletion](#repository-deletion-repo-deletionyml
 
 The workflow further triggers the [repository deletion](#delete-repository-repo-deletionyml) workflow.
 
+#### Handle GitHub Team Request: [handle-github-team-request.yml](.github/workflows/handle-github-team-request.yml)
+
+Workflow parsing the [github team request](#handle-github-team-request-handle-github-team-requestyml) issue data and commenting / closing the issue depending on the workflow success.
+
+The workflow further triggers the [github team request](#create-github-team-github-team-requestyml) workflow.
+
 #### Create Repository: [repo-creation.yml](.github/workflows/repo-creation.yml)
 
 Workflow creating a repository from template data.
@@ -163,6 +183,10 @@ Workflow creating a repository from template data.
 #### Delete Repository: [repo-deletion.yml](.github/workflows/repo-deletion.yml)
 
 Workflow deleting a repository by name.
+
+#### Create GitHub Team: [github-team-request.yml](.github/workflows/github-team-request.yml)
+
+Workflow creating a team from name and description on GitHub.
 
 ### Organization Management
 
