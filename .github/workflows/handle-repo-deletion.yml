@@ -8,7 +8,6 @@ jobs:
     name: "Notify Deletion Issue"
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ github.token }}
       USER: ${{ github.event.issue.user.login }}
     steps:
       - uses: actions/checkout@v3.3.0
@@ -62,8 +61,6 @@ jobs:
       - handle
     name: "Comment Deletion Issue"
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/comment-issue
@@ -79,7 +76,6 @@ jobs:
     name: "Close Deletion Issue"
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ github.token }}
       USER: ${{ github.event.issue.user.login }}
     steps:
       - uses: actions/checkout@v3.3.0

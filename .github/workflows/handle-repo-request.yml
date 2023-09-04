@@ -7,8 +7,6 @@ jobs:
   notify:
     name: "Notify Request Issue"
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/comment-issue
@@ -37,12 +35,10 @@ jobs:
           function github_name() {
             echo $1 | tr '[:upper:]' '[:lower:]' | sed -r 's/[^a-z0-9ß-ü \-]*//g' | sed -e 's/ä/ae/g' -e 's/ö/oe/g' -e 's/ü/ue/g' -e 's/ß/ss/g' | sed -r 's/[\t ]+/-/g'
           }
-          COMPANY=$(github_name "$(echo $JSON | jq -r '.company.text' | sed -E 's/.*\((.*)\)/\1/')")
-          TEAM=$(github_name "$(echo $JSON | jq -r '.team.text' | sed -E 's/(.*)-.*/\1/')")
-          PROJECT=$(github_name "$(echo $JSON | jq -r '.project.text')")
-          RNAME=$(github_name "$(echo $JSON | jq -r '.name.text')")
-          echo "project_name"="${RNAME}" >> "$GITHUB_OUTPUT"
-          echo "repo_name=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}" >> "$GITHUB_OUTPUT"
+          TEAM=$(github_name "$(echo $JSON | jq -r '.team.text' | sed -E 's/ -.*//')")
+          NAME=$(github_name "$(echo $JSON | jq -r '.name.text')")
+          echo "project_name"="${NAME}" >> "$GITHUB_OUTPUT"
+          echo "repo_name=${TEAM}-${NAME}" >> "$GITHUB_OUTPUT"
       - name: Get Attrbutes
         id: attributes
         env:
@@ -71,7 +67,6 @@ jobs:
     name: "Comment Request Issue"
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ github.token }}
       REPO_URL: ${{ needs.handle.outputs.repo_url }}
     steps:
       - uses: actions/checkout@v3.3.0
@@ -88,7 +83,6 @@ jobs:
     name: "Close Request Issue"
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ github.token }}
       REPO_URL: ${{ needs.handle.outputs.repo_url }}
     steps:
       - uses: actions/checkout@v3.3.0

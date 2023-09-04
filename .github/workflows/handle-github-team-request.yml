@@ -7,8 +7,6 @@ jobs:
   notify:
     name: "Notify Request Issue"
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/comment-issue
@@ -52,7 +50,6 @@ jobs:
     name: "Comment Request Issue"
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ github.token }}
       TEAM_URL: ${{ needs.handle.outputs.team_url }}
     steps:
       - uses: actions/checkout@v3.3.0
@@ -69,7 +66,6 @@ jobs:
     name: "Close Request Issue"
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ github.token }}
       TEAM_URL: ${{ needs.handle.outputs.team_url }}
     steps:
       - uses: actions/checkout@v3.3.0
