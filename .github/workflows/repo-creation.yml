@@ -115,10 +115,14 @@ jobs:
         run: |
           REPO_URL=$(gh repo create $REPO_OWNER/$REPO_NAME --$VISIBILITY --clone)
           echo "repo_url=$REPO_URL" >> "$GITHUB_OUTPUT"
-      - name: Copy Files
+      - name: Copy Common Files
         working-directory: ./${{ inputs.repo_name }}
         run: |
           cp -r ../templates/common/* .
+      - name: Copy Language Files
+        if: ${{ inputs.language != '' }}
+        working-directory: ./${{ inputs.repo_name }}
+        run: |
           cp -r ../templates/languages/$LANGUAGE/* .
       - name: Templating Using Jinja
         working-directory: ./${{ inputs.repo_name }}

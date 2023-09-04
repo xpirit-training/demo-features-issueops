@@ -2,6 +2,9 @@ name: Close Issue
 description: Close an issue
 
 inputs:
+  message:
+    description: "Comment Message"
+    required: true
   issue:
     description: "Issue Number"
     required: false
@@ -10,15 +13,18 @@ inputs:
     description: "Reason for closing: {completed|not planned}"
     required: false
     default: "completed"
-  message:
-    description: "Comment Message"
-    required: true
+  token:
+    description: "Token used for GitHub API calls"
+    required: false
+    default: ${{ github.token }}
 
 runs:
   using: "composite"
   steps:
-    - run: >-
-        gh issue close ${{ inputs.issue }}
-        -r ${{ inputs.reason }}
+    - env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        gh issue close ${{ inputs.issue }} \
+        -r ${{ inputs.reason }} \
         -c "${{ inputs.message }}"
       shell: bash

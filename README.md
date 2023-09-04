@@ -116,7 +116,7 @@ The dropdown selections are automatically updated by the [repo request update](#
 
 Simple issue form taking the name of the repository as input which is supposed to be deleted via [workflow](#handle-repository-deletion-handle-repo-deletionyml).
 
-#### Team Request: [github-team-request.yml](.github/ISSUE_TEMPLATE/github-team-request.yml)
+#### GitHub Team Request: [github-team-request.yml](.github/ISSUE_TEMPLATE/github-team-request.yml)
 
 Simple issue form taking the name and the description of the GitHub team as input which is supposed to be created via [workflow](#handle-github-team-request-handle-github-team-requestyml).
 
@@ -164,17 +164,15 @@ Workflow parsing the [repository request](#repository-request-repo-requestyml) i
 
 The repository name is created with the following pattern:
 
-`[company ID]-[team ID]-[project name]-[repo name]`
+`[team name]-[repo name]`
 
 **Example:**
 
 ```
-Repo: My-Test
-Company: Xpirit (1337)
-Team: T1-Team 1
-Project: project 1
+Repo: Romani Ite Domum
+Team: Peoples Front
 
-Full Repo Name: 1337-t1-project-1-my-test
+Full Repo Name: peoples-front-romani-ite-domum
 ```
 
 The workflow further triggers the [repository creation](#create-repository-repo-creationyml) workflow.
@@ -207,27 +205,20 @@ Workflow creating a team from name and description on GitHub.
 
 #### Update Repo Request Issue Template: [update-repo-request-template.yml](.github/workflows/update-repo-request-template.yml)
 
-Workflow that is triggered by any changes to the workflow file `.github/workflows/update-repo-request-template.yml` or the `./org` or `./templates/languages` directories. The workflow reads the contents from the folder expecting the following structure:
+Workflow to update dropdown selections in the [Repo Request Issue Template](.github/workflows/update-repo-request-template.yml).
+
+The following selection data will be updated:
+
+- Teams
+- Languages
+
+The workflow is triggered by any changes to the workflow file `.github/workflows/update-repo-request-template.yml` or the `./templates/languages` directory and also runs each day at midnight to update eventual changes to the team structure.
+
+The workflow reads the contents from the `./templates/languages` folder expecting the following structure:
 
 ```
 .
-├── org/
-│   ├── company-1/
-│   │   ├── metadata.yml
-│   │   └── teams/
-│   │       └── team-1/
-│   │           ├── metadata.yml
-│   │           └── projects/
-│   │               ├── project-1/
-│   │               └── project-2/
-│   └── company-n/
-│       ├── metadata.yml
-│       └── teams/
-│           └── team-n/
-│               └── metadata.yml/
-│                   └── projects/
-│                       └── project-n/
-└── templates/
+├── templates/
     └── languages/
         ├── language-1/
         │   ├── README.md
@@ -236,8 +227,6 @@ Workflow that is triggered by any changes to the workflow file `.github/workflow
             ├── README.md
             └── language-files
 ```
-
-The `org` is defined of a set of `company` which has a set of `teams`. Each team has a set of `projects`. In order to define the general properties on `company` as well as `team` level, each of those has a `metadata.yml`. This file holds properties such as team manager or team identifier.
 
 Any change to the structure will trigger the workflow and populate the issue template.
 
@@ -249,7 +238,7 @@ Any change to the structure will trigger the workflow and populate the issue tem
 
 Action adding a comment on a given issue.
 
-The actions uses the [GitHub CLI](https://cli.github.com/) so provide an environment variable called [`GH_TOKEN`](https://cli.github.com/manual/gh_auth_login) with permissions to comment issues.
+The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions to comment issues if the default `github.token` is not sufficient.
 
 Example usage:
 ```yaml
@@ -257,21 +246,27 @@ jobs:
   comment:
     name: "Create a test comment"
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v3.3.0
+      - name: Get Token From GitHub App
+        id: get-workflow-token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ vars.GH_APP_ID }}
+          application_private_key: ${{ secrets.GH_APP_KEY }}
+          organization: ${{ vars.ORGANIZATION }}
       - uses: ./.github/actions/comment-issue
-      with:
-        issue: 42
-        message: "This is a test"
+        with:
+          token: ${{ steps.get-workflow-token.outputs.token }}
+          issue: 42
+          message: "This is a test"
 ```
 
 #### [close-issue](.github/actions/close-issue/action.yml)
 
 Action closing a given issue adding a comment.
 
-The actions uses the [GitHub CLI](https://cli.github.com/) so provide an environment variable called [`GH_TOKEN`](https://cli.github.com/manual/gh_auth_login) with permissions to close issues.
+The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions to close issues if the default `github.token` is not sufficient.
 
 Example usage:
 ```yaml
@@ -279,48 +274,49 @@ jobs:
   comment:
     name: "Close a test issue"
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v3.3.0
+      - name: Get Token From GitHub App
+        id: get-workflow-token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ vars.GH_APP_ID }}
+          application_private_key: ${{ secrets.GH_APP_KEY }}
+          organization: ${{ vars.ORGANIZATION }}
       - uses: ./.github/actions/close-issue
-      with:
-        issue: 42
-        message: "Yes we did it!"
-        reason: "completed"
+        with:
+          token: ${{ steps.get-workflow-token.outputs.token }}
+          issue: 42
+          message: "Yes we did it!"
+          reason: "completed"
 ```
 
-## Queries
+#### [get-teams](.github/actions/get-teams/action.yml)
 
-### jq
+Action retrieving the teams of an organization as JSON array.
 
-#### Create repo name
+The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions to close issues if the default `github.token` is not sufficient.
 
-```
-COMPANY=$(cat [issue-body] | jq -r '.Company' | sed 's/ (.*)//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-
-TEAM=$(cat [issue-body] | jq -r '.Team' | sed 's/-.*//g' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-
-PROJECT=$(cat [issue-body] | jq -r '.Project' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-
-RNAME=$(cat [issue-body] | jq -r '.Name' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
-
-REPO=${COMPANY}-${TEAM}-${PROJECT}-${RNAME}
-```
-
-### yq
-
-#### Replace companies, teams & projects
-
-testing:
-
-```
-# Companies
-COMPANIES=$(find ./org/companies -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1") \($(yq '.number' "$1"/metadata.yml)\)' sh {} \; | sort) yq '(.body[] | select(.type=="dropdown" and .attributes.label=="Company") | .attributes.options) |=env(COMPANIES)' .github/ISSUE_TEMPLATE/repo-request.yml
-
-# Teams
-TEAMS=$(find ./org/companies/*/teams -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(yq '.id' "$1"/metadata.yml)-$(basename "$1")' sh {} \; | sort) yq '(.body[] | select(.type=="dropdown" and .attributes.label=="Team") | .attributes.options) |=env(TEAMS)' .github/ISSUE_TEMPLATE/repo-request.yml
-
-# Projects
-PROJECTS=$(find ./org/companies/*/teams/*/projects -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1")' sh {} \; | sort) yq '(.body[] | select(.type=="dropdown" and .attributes.label=="Project") | .attributes.options) |=env(PROJECTS)' .github/ISSUE_TEMPLATE/repo-request.yml
+Example usage:
+```yaml
+jobs:
+  comment:
+    name: "Close a test issue"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - name: Get Token From GitHub App
+        id: get-workflow-token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ vars.GH_APP_ID }}
+          application_private_key: ${{ secrets.GH_APP_KEY }}
+          organization: ${{ vars.ORGANIZATION }}
+      - uses: ./.github/actions/get-teams
+        id: get-teams
+        with:
+          token: ${{ steps.get-workflow-token.outputs.token }}
+          organization: ${{ vars.ORGANIZATION }}
+      - name: Display Teams
+        run: echo ${{ steps.get-teams.outputs.json }}
 ```

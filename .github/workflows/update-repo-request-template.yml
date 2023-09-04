@@ -2,9 +2,10 @@ name: Update the 'Repo-Request' Issue Template
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *" # every night at midnight to update teams
   push:
     paths:
-      - "./org/**"
       - "./templates/languages/**"
       - ".github/workflows/update-repo-request-template.yml"
 
@@ -19,38 +20,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.3.0
-      - name: Get Companies
-        run: >-
-          find ./org/companies -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1") \($(yq '.number' "$1"/metadata.yml)\)' sh {} \; | sort > companies
+      - name: Get Token
+        id: get-workflow-token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ vars.GH_APP_ID }}
+          application_private_key: ${{ secrets.GH_APP_KEY }}
+          organization: ${{ vars.ORGANIZATION }}
       - name: Get Teams
-        run: >-
-          find ./org/companies/*/teams -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(yq '.id' "$1"/metadata.yml)-$(basename "$1")' sh {} \; | sort > teams
-      - name: Get Projects
-        run: >-
-          find ./org/companies/*/teams/*/projects -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1")' sh {} \; | sort > projects
-      - name: Get Languages
-        run: >-
-          find ./templates/languages -mindepth 1 -maxdepth 1 -type d -exec sh -c 'echo - $(basename "$1")' sh {} \; | sort > languages
-      - name: Update Companies
-        run: >-
-          COMPANIES=$(cat companies)
-          yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Company") | .attributes.options) |=env(COMPANIES)'
-          $ISSUE_TEMPLATE_FILE
+        uses: ./.github/actions/get-teams
+        id: get-teams
+        with:
+          token: ${{ steps.get-workflow-token.outputs.token }}
+          organization: ${{ vars.ORGANIZATION }}
       - name: Update Teams
-        run: >-
-          TEAMS=$(cat teams)
-          yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Team") | .attributes.options) |=env(TEAMS)'
-          $ISSUE_TEMPLATE_FILE
-      - name: Update Projects
-        run: >-
-          PROJECTS=$(cat projects)
-          yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Project") | .attributes.options) |=env(PROJECTS)'
-          $ISSUE_TEMPLATE_FILE
+        env:
+          JSON: ${{ steps.get-teams.outputs.json }}
+        run: |
+          TEAMS=$( echo $JSON \
+            | jq -r '.[] | "- " + .name + (.description | if . == "" then . else " - " + . end )' \
+            | sort ) \
+            yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Team") | .attributes.options) |=env(TEAMS)' \
+            $ISSUE_TEMPLATE_FILE
       - name: Update Languages
-        run: >-
-          LANGUAGES=$(cat languages)
-          yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Language") | .attributes.options) |=env(LANGUAGES)'
-          $ISSUE_TEMPLATE_FILE
+        run: |
+          LANGUAGES=$( find ./templates/languages \
+            -mindepth 1 \
+            -maxdepth 1 \
+            -type d \
+            -exec sh \
+            -c 'echo - $(basename "$1")' sh {} \; \
+            | sort ) \
+            yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Language") | .attributes.options) |=env(LANGUAGES)' \
+            $ISSUE_TEMPLATE_FILE
       - name: Determine Changes
         id: change-detection
         run: |
