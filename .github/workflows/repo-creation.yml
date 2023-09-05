@@ -120,7 +120,7 @@ jobs:
         run: |
           cp -r ../templates/common/* .
       - name: Copy Language Files
-        if: ${{ inputs.language != '' }}
+        if: ${{ inputs.language != '' && inputs.language != 'None' }}
         working-directory: ./${{ inputs.repo_name }}
         run: |
           cp -r ../templates/languages/$LANGUAGE/* .
