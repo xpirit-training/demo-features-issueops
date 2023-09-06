@@ -87,11 +87,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3.3.0
       - name: Cache Template Files
-        id: cache-template-files
+        id: cache-files
         uses: actions/cache@v3
         with:
-          path: ./templates
-          key: templates-${{ github.run_id }}
+          path: |
+            ./.github/actions
+            ./templates
+          key: ${{ github.run_id }}
 
   create-repo:
     needs:
@@ -111,12 +113,13 @@ jobs:
           if [[ "$REPO" == -* ]]; then exit 1; fi
           # shall not end with minus
           if [[ "$REPO" == *- ]]; then exit 1; fi
-      - name: Restore Cached Template Files
-        id: restore-cached-template-files
+      - name: Restore Cached Files
         uses: actions/cache@v3
         with:
-          path: ./templates
-          key: templates-${{ github.run_id }}
+          path: |
+            ./.github/actions
+            ./templates
+          key: ${{ github.run_id }}
       - name: Get Token
         id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
@@ -132,7 +135,7 @@ jobs:
           REPO_URL=$(gh repo create $REPO_OWNER/$REPO_NAME --$VISIBILITY --clone)
           echo "repo_url=$REPO_URL" >> "$GITHUB_OUTPUT"
       - name: Add Repo Topics
-        uses: ./.github/actions/grant-permission-team
+        uses: ./.github/actions/add-topics
         with:
           owner: ${{ vars.ORGANIZATION }}
           repository: ${{ inputs.repo_name }}

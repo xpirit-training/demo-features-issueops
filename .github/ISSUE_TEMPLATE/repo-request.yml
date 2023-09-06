@@ -47,6 +47,6 @@ body:
   - type: input
     attributes:
       label: Topics
-      description: JSON array of topics to add
+      description: comma-separated array of topics to add
     validations:
       required: false

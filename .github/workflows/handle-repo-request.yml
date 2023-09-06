@@ -20,9 +20,9 @@ jobs:
     name: "Parse Request Issue"
     runs-on: ubuntu-latest
     outputs:
-      project_name: ${{ steps.repo-name.outputs.project_name }}
-      team_slug: ${{ steps.repo-name.outputs.team_slug }}
-      repo_name: ${{ steps.repo-name.outputs.repo_name }}
+      project_name: ${{ steps.attributes.outputs.project_name }}
+      team_slug: ${{ steps.attributes.outputs.team_slug }}
+      repo_name: ${{ steps.attributes.outputs.repo_name }}
       visibility: ${{ steps.attributes.outputs.visibility }}
       language: ${{ steps.attributes.outputs.language }}
       topics: ${{ steps.attributes.outputs.topics }}
@@ -31,28 +31,36 @@ jobs:
       - name: Parse Issue Form into JSON
         id: parse
         uses: zentered/issue-forms-body-parser@v2.0.0
-      - name: Get Repo Name
-        id: repo-name
+      - name: Get Attrbutes
+        id: attributes
         env:
           JSON: ${{ steps.parse.outputs.data }}
           LC_ALL: "C"
         run: |
           function github_name() {
-            echo $1 | tr '[:upper:]' '[:lower:]' | sed -r 's/[^a-z0-9ß-ü \-]*//g' | sed -e 's/ä/ae/g' -e 's/ö/oe/g' -e 's/ü/ue/g' -e 's/ß/ss/g' | sed -r 's/[\t ]+/-/g'
+            echo $1 \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -r 's/[^a-z0-9ß-ü \-]*//g' \
+            | sed -e 's/ä/ae/g' -e 's/ö/oe/g' -e 's/ü/ue/g' -e 's/ß/ss/g' \
+            | sed -r 's/[\t ]+/-/g' \
+            | sed -r 's/[-]+/-/g'
+          }
+          function github_name_array() {
+            array=""
+            for item in $(echo $1 | tr " " "-" | tr "," " "); do
+              array+="$(github_name $item),"
+            done
+            echo $array | sed 's/.$//'
           }
           TEAM=$(github_name "$(echo $JSON | jq -r '.team.text' | sed -E 's/ -.*//')")
           NAME=$(github_name "$(echo $JSON | jq -r '.name.text')")
-          echo "project_name"="${NAME}" >> "$GITHUB_OUTPUT"
-          echo "team_slug"="${TEAM}" >> "$GITHUB_OUTPUT"
+          TOPICS=$(github_name_array "$(echo $JSON | jq -r '.topics.text')")
+          echo "project_name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "team_slug=$TEAM" >> "$GITHUB_OUTPUT"
           echo "repo_name=${TEAM}-${NAME}" >> "$GITHUB_OUTPUT"
-      - name: Get Attrbutes
-        id: attributes
-        env:
-          JSON: ${{ steps.parse.outputs.data }}
-        run: |
           echo "visibility=$(echo $JSON | jq -r '.visibility.text')" >> "$GITHUB_OUTPUT"
           echo "language=$(echo $JSON | jq -r '.language.text')" >> "$GITHUB_OUTPUT"
-          echo "topics=$(echo $JSON | jq -r '.topics.text')" >> "$GITHUB_OUTPUT"
+          echo "topics=$TOPICS" >> "$GITHUB_OUTPUT"
 
   handle:
     needs:

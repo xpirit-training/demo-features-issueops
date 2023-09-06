@@ -381,6 +381,6 @@ jobs:
         with:
           owner: jeffrey-lebowski
           repository: white-russian
-          topics: '["@therealdude", "That rug really tied the room together"]'
+          topics: 'the-real-dude,that-rug-really-tied-the-room-together'
           token: ${{ steps.get-workflow-token.outputs.token }}
 ```
