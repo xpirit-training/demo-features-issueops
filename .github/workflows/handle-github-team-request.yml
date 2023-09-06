@@ -11,7 +11,8 @@ jobs:
       USER: ${{ github.event.issue.user.login }}
     steps:
       - uses: actions/checkout@v3.3.0
-      - uses: ./.github/actions/comment-issue
+      - name: Add Comment To Issue
+        uses: ./.github/actions/comment-issue
         with:
           message: "@${USER} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
 
@@ -52,12 +53,13 @@ jobs:
     name: "Comment Request Issue"
     runs-on: ubuntu-latest
     env:
-      TEAM_URL: ${{ needs.handle.outputs.team_url }}
+      USER: ${{ github.event.issue.user.login }}
     steps:
       - uses: actions/checkout@v3.3.0
-      - uses: ./.github/actions/comment-issue
+      - name: Add Comment To Issue
+        uses: ./.github/actions/comment-issue
         with:
-          message: "@${{ github.event.issue.user.login }} the team provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
+          message: "@${USER} the team provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
 
   close:
     if: success()
@@ -72,6 +74,7 @@ jobs:
       TEAM_URL: ${{ needs.handle.outputs.team_url }}
     steps:
       - uses: actions/checkout@v3.3.0
-      - uses: ./.github/actions/close-issue
+      - name: Close Issue With Comment
+        uses: ./.github/actions/close-issue
         with:
           message: "@${USER} your team was created and is now accessible here: ${TEAM_URL}"

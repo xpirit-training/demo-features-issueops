@@ -1,0 +1,43 @@
+name: Grant Team Permission To Repository
+description: Grant a team permission to a GitHub repository
+
+inputs:
+  organization:
+    description: "Organization Name"
+    required: true
+  team:
+    description: "Team Slug"
+    required: true
+  repository:
+    description: "Repository Name"
+    required: true
+  permission:
+    description: "Permission to grant (read | write | admin)"
+    required: true
+    default: "read"
+  token:
+    description: "Token used for GitHub API calls"
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: get-repo-id
+      run: |
+        echo repository_id=$(gh api \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/${{ inputs.organization }}/${{ inputs.repository }} \
+          | jq -r '.id') >> "$GITHUB_OUTPUT"
+      shell: bash
+    - env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        gh api \
+          --method PUT \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /orgs/${{ inputs.organization }}/teams/${{ inputs.team }}/projects/${{ steps.get-repo-id.outputs.repository_id }} \
+          -f permission=${{ inputs.permission }}
+      shell: bash

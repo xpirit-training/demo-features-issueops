@@ -44,3 +44,9 @@ body:
         - terraform
     validations:
       required: false
+  - type: input
+    attributes:
+      label: Topics
+      description: JSON array of topics to add
+    validations:
+      required: false

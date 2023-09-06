@@ -7,6 +7,10 @@ on:
         description: "Project Name"
         required: true
         type: string
+      team_slug:
+        description: "Team Slug To Grant Access"
+        required: false
+        type: string
       repo_name:
         description: "Repo Name"
         required: true
@@ -19,6 +23,10 @@ on:
         description: "Language Template"
         required: true
         type: string
+      topics:
+        description: "JSON Array of topics"
+        required: false
+        type: string
     outputs:
       repo_url:
         description: "The URL of the created repo"
@@ -30,6 +38,10 @@ on:
         required: true
         type: string
         default: "TestProject"
+      team_slug:
+        description: "Team Slug To Grant Access"
+        required: false
+        type: string
       repo_name:
         description: "Repo Name"
         required: true
@@ -50,6 +62,10 @@ on:
         required: true
         type: string
         default: "terraform"
+      topics:
+        description: "JSON Array of topics"
+        required: false
+        type: string
 
 permissions:
   actions: write
@@ -115,6 +131,13 @@ jobs:
         run: |
           REPO_URL=$(gh repo create $REPO_OWNER/$REPO_NAME --$VISIBILITY --clone)
           echo "repo_url=$REPO_URL" >> "$GITHUB_OUTPUT"
+      - name: Add Repo Topics
+        uses: ./.github/actions/grant-permission-team
+        with:
+          owner: ${{ vars.ORGANIZATION }}
+          repository: ${{ inputs.repo_name }}
+          topics: ${{ inputs.topics }}
+          token: ${{ steps.get-workflow-token.outputs.token }}
       - name: Copy Common Files
         working-directory: ./${{ inputs.repo_name }}
         run: |
@@ -142,3 +165,12 @@ jobs:
           git add -A
           git commit -m "$CI_COMMIT_MESSAGE"
           git push --set-upstream origin $DEFAULT_BRANCH
+      - name: Grant Admin Access To Team
+        if: ${{ inputs.team_slug != '' }}
+        uses: ./.github/actions/grant-permission-team
+        with:
+          organization: ${{ vars.ORGANIZATION }}
+          team: ${{ inputs.team_slug }}
+          repository: ${{ inputs.repo_name }}
+          permission: "admin"
+          token: ${{ steps.get-workflow-token.outputs.token }}

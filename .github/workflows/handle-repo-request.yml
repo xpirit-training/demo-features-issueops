@@ -11,7 +11,8 @@ jobs:
       USER: ${{ github.event.issue.user.login }}
     steps:
       - uses: actions/checkout@v3.3.0
-      - uses: ./.github/actions/comment-issue
+      - name: Add Comment To Issue
+        uses: ./.github/actions/comment-issue
         with:
           message: "@${USER} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
 
@@ -20,9 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       project_name: ${{ steps.repo-name.outputs.project_name }}
+      team_slug: ${{ steps.repo-name.outputs.team_slug }}
       repo_name: ${{ steps.repo-name.outputs.repo_name }}
       visibility: ${{ steps.attributes.outputs.visibility }}
       language: ${{ steps.attributes.outputs.language }}
+      topics: ${{ steps.attributes.outputs.topics }}
     steps:
       - uses: actions/checkout@v3.3.0
       - name: Parse Issue Form into JSON
@@ -40,6 +43,7 @@ jobs:
           TEAM=$(github_name "$(echo $JSON | jq -r '.team.text' | sed -E 's/ -.*//')")
           NAME=$(github_name "$(echo $JSON | jq -r '.name.text')")
           echo "project_name"="${NAME}" >> "$GITHUB_OUTPUT"
+          echo "team_slug"="${TEAM}" >> "$GITHUB_OUTPUT"
           echo "repo_name=${TEAM}-${NAME}" >> "$GITHUB_OUTPUT"
       - name: Get Attrbutes
         id: attributes
@@ -48,6 +52,7 @@ jobs:
         run: |
           echo "visibility=$(echo $JSON | jq -r '.visibility.text')" >> "$GITHUB_OUTPUT"
           echo "language=$(echo $JSON | jq -r '.language.text')" >> "$GITHUB_OUTPUT"
+          echo "topics=$(echo $JSON | jq -r '.topics.text')" >> "$GITHUB_OUTPUT"
 
   handle:
     needs:
@@ -58,6 +63,7 @@ jobs:
       repo_name: ${{ needs.parse.outputs.repo_name }}
       visibility: ${{ needs.parse.outputs.visibility }}
       language: ${{ needs.parse.outputs.language }}
+      topics: ${{ needs.parse.outputs.topics }}
     secrets: inherit
 
   comment:
@@ -69,12 +75,13 @@ jobs:
     name: "Comment Request Issue"
     runs-on: ubuntu-latest
     env:
-      REPO_URL: ${{ needs.handle.outputs.repo_url }}
+      USER: ${{ github.event.issue.user.login }}
     steps:
       - uses: actions/checkout@v3.3.0
-      - uses: ./.github/actions/comment-issue
+      - name: Add Comment To Issue
+        uses: ./.github/actions/comment-issue
         with:
-          message: "@${{ github.event.issue.user.login }} the repository provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
+          message: "@${USER} the repository provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
 
   close:
     if: ${{ success() }}
@@ -89,6 +96,7 @@ jobs:
       REPO_URL: ${{ needs.handle.outputs.repo_url }}
     steps:
       - uses: actions/checkout@v3.3.0
-      - uses: ./.github/actions/close-issue
+      - name: Close Issue With Comment
+        uses: ./.github/actions/close-issue
         with:
           message: "@${USER} your repository was created and is now accessible here: $REPO_URL"
