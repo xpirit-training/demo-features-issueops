@@ -83,7 +83,7 @@ The request returns a JSON that is displayed in the browser. From that request t
 where `{user-id}` is the value of the response key `"id"` and `{name-of-github-app}` is the name of the app. Remember to add `[bot]`.
 ### Secrets
 
-The following variables have to be configured:
+The following secrets have to be configured:
 
 | Key        | Description                                  |
 | ---------- | -------------------------------------------- |
@@ -290,6 +290,8 @@ jobs:
           message: "Yes we did it!"
           reason: "completed"
 ```
+
+### Organization Handling
 
 #### [get-teams](.github/actions/get-teams/action.yml)
 

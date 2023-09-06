@@ -7,11 +7,13 @@ jobs:
   notify:
     name: "Notify Request Issue"
     runs-on: ubuntu-latest
+    env:
+      USER: ${{ github.event.issue.user.login }}
     steps:
       - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/comment-issue
         with:
-          message: "@${{ github.event.issue.user.login }} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
+          message: "@${USER} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
 
   parse:
     name: "Parse Request Issue"
@@ -66,9 +68,10 @@ jobs:
     name: "Close Request Issue"
     runs-on: ubuntu-latest
     env:
+      USER: ${{ github.event.issue.user.login }}
       TEAM_URL: ${{ needs.handle.outputs.team_url }}
     steps:
       - uses: actions/checkout@v3.3.0
       - uses: ./.github/actions/close-issue
         with:
-          message: "@${{ github.event.issue.user.login }} your team was created and is now accessible here: $TEAM_URL"
+          message: "@${USER} your team was created and is now accessible here: ${TEAM_URL}"

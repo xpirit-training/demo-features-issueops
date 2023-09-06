@@ -1,7 +1,7 @@
 ---
 name: Repo deletion
 description: Request deletion of a repository in your organization.
-title: "[Repo Deletion] "
+title: "[Repo Deletion]"
 labels: [repo-deletion]
 body:
   - type: input
