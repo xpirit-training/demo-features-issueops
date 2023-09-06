@@ -81,6 +81,7 @@ The request returns a JSON that is displayed in the browser. From that request t
 `
 
 where `{user-id}` is the value of the response key `"id"` and `{name-of-github-app}` is the name of the app. Remember to add `[bot]`.
+
 ### Secrets
 
 The following secrets have to be configured:
@@ -232,7 +233,7 @@ Any change to the structure will trigger the workflow and populate the issue tem
 
 ## Actions
 
-### Issue Handling
+### Issue Management
 
 #### [comment-issue](.github/actions/comment-issue/action.yml)
 
@@ -291,7 +292,7 @@ jobs:
           reason: "completed"
 ```
 
-### Organization Handling
+### Organization Management
 
 #### [get-teams](.github/actions/get-teams/action.yml)
 
@@ -321,4 +322,65 @@ jobs:
           organization: ${{ vars.ORGANIZATION }}
       - name: Display Teams
         run: echo ${{ steps.get-teams.outputs.json }}
+```
+
+#### [grant-permission-team](.github/actions/grant-permission-team/action.yml)
+
+Action granting a team permission to a repository
+
+The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions.
+
+Example usage:
+```yaml
+jobs:
+  comment:
+    name: "Grant Team Permission"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - name: Get Token From GitHub App
+        id: get-workflow-token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ vars.GH_APP_ID }}
+          application_private_key: ${{ secrets.GH_APP_KEY }}
+          organization: ${{ vars.ORGANIZATION }}
+      - uses: ./.github/actions/grant-permission-team
+        with:
+          organization: united-states
+          team: president
+          repository: nuclear-codes 
+          permission: read
+          token: ${{ steps.get-workflow-token.outputs.token }}
+```
+
+### Repository Management
+
+#### [add-topics](.github/actions/add-topics/action.yml)
+
+Action adding topics to a repository
+
+The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions if the default `github.token` is not sufficient.
+
+Example usage:
+```yaml
+jobs:
+  comment:
+    name: "Add Topics To Repository"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - name: Get Token From GitHub App
+        id: get-workflow-token
+        uses: peter-murray/workflow-application-token-action@v2
+        with:
+          application_id: ${{ vars.GH_APP_ID }}
+          application_private_key: ${{ secrets.GH_APP_KEY }}
+          organization: ${{ vars.ORGANIZATION }}
+      - uses: ./.github/actions/add-topics
+        with:
+          owner: jeffrey-lebowski
+          repository: white-russian
+          topics: '["@therealdude", "That rug really tied the room together"]'
+          token: ${{ steps.get-workflow-token.outputs.token }}
 ```
