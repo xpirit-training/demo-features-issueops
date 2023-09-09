@@ -32,6 +32,7 @@ body:
         - Justice League - A great team
         - Justice League22 - A great team
         - NSync - :D
+        - Test - A great team
         - The Avengers - Epic crew of the Avengers.
     validations:
       required: true
