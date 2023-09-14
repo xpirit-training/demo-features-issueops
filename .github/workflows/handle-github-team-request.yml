@@ -3,16 +3,16 @@ name: Handle GitHub Team Request
 on:
   workflow_call:
 
+env:
+  USER: ${{ github.event.issue.user.login }}
+
 jobs:
   notify:
     name: "Notify Request Issue"
     runs-on: ubuntu-latest
-    env:
-      USER: ${{ github.event.issue.user.login }}
     steps:
       - uses: actions/checkout@v3.3.0
-      - name: Add Comment To Issue
-        uses: ./.github/actions/comment-issue
+      - uses: ./.github/actions/comment-issue
         with:
           message: "@${USER} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
 
@@ -22,18 +22,22 @@ jobs:
     outputs:
       team_name: ${{ steps.attributes.outputs.team_name }}
       description: ${{ steps.attributes.outputs.description }}
+      maintainer: ${{ steps.attributes.outputs.maintainer }}
+      parent_team: ${{ steps.attributes.outputs.parent_team }}
     steps:
       - uses: actions/checkout@v3.3.0
       - name: Parse Issue Form into JSON
         id: parse
         uses: zentered/issue-forms-body-parser@v2.0.0
-      - name: Get Attrbutes
+      - name: Get Attributes
         id: attributes
         env:
           JSON: ${{ steps.parse.outputs.data }}
         run: |
           echo "team_name=$(echo $JSON | jq -r '.name.text')" >> "$GITHUB_OUTPUT"
           echo "description=$(echo $JSON | jq -r '.description.text')" >> "$GITHUB_OUTPUT"
+          echo "maintainer=${USER}" >> "$GITHUB_OUTPUT"
+          echo "parent_team=$(echo $JSON | jq -r '.parent.text' | sed -E 's/ -.*//')" >> "$GITHUB_OUTPUT"
 
   handle:
     needs:
@@ -42,6 +46,8 @@ jobs:
     with:
       team_name: ${{ needs.parse.outputs.team_name }}
       description: ${{ needs.parse.outputs.description }}
+      maintainer: ${{ needs.parse.outputs.maintainer }}
+      parent_team: ${{ needs.parse.outputs.parent_team }}
     secrets: inherit
 
   comment:
@@ -53,11 +59,10 @@ jobs:
     name: "Comment Request Issue"
     runs-on: ubuntu-latest
     env:
-      USER: ${{ github.event.issue.user.login }}
+      TEAM_URL: ${{ needs.handle.outputs.team_url }}
     steps:
       - uses: actions/checkout@v3.3.0
-      - name: Add Comment To Issue
-        uses: ./.github/actions/comment-issue
+      - uses: ./.github/actions/comment-issue
         with:
           message: "@${USER} the team provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
 
@@ -70,11 +75,9 @@ jobs:
     name: "Close Request Issue"
     runs-on: ubuntu-latest
     env:
-      USER: ${{ github.event.issue.user.login }}
       TEAM_URL: ${{ needs.handle.outputs.team_url }}
     steps:
       - uses: actions/checkout@v3.3.0
-      - name: Close Issue With Comment
-        uses: ./.github/actions/close-issue
+      - uses: ./.github/actions/close-issue
         with:
-          message: "@${USER} your team was created and is now accessible here: ${TEAM_URL}"
+          message: "@${USER} your team was created and is now accessible here: $TEAM_URL"
