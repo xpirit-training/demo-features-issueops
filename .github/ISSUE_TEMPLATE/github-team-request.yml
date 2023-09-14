@@ -1,6 +1,6 @@
 ---
 name: GitHub team request
-description: Request a new GitHub team for the current organization. The requesting user will automatically added as a maintainer for the new team.
+description: Request a new GitHub team for the current organization. The requesting user will automatically be added as a maintainer for the new team.
 title: "[Github Team Request]"
 labels: [github-team-request]
 body:
@@ -14,5 +14,22 @@ body:
     attributes:
       label: Description
       description: Description of the team
+    validations:
+      required: false
+  - type: dropdown
+    attributes:
+      label: Parent
+      description: Select the parent GitHub Team
+      options:
+        - Admins
+        - Backstreetboys - Xpirit boyband!
+        - Developer
+        - Goofies Band - The band of Goofy.
+        - JS-Developers - Team for all the JS-Developers
+        - Justice League - A great team
+        - Justice League22 - A great team
+        - NSync - :D
+        - Test - A great team
+        - The Avengers - Epic crew of the Avengers.    
     validations:
       required: false

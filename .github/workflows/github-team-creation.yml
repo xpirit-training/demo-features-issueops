@@ -11,6 +11,14 @@ on:
         description: "Team Description"
         required: false
         type: string
+      maintainer:
+        description: "GitHub user name"
+        required: true
+        type: string
+      parent_team:
+        description: "Parent GitHub Team"
+        required: false
+        type: string
     outputs:
       team_url:
         description: "The URL of the created team"
@@ -27,6 +35,14 @@ on:
         required: true
         type: string
         default: "MyTestTeamDescription"
+      maintainer:
+        description: "GitHub user name"
+        required: true
+        type: string
+      parent_team:
+        description: "Parent GitHub Team"
+        required: false
+        type: string
 
 permissions:
   actions: write
@@ -38,6 +54,8 @@ env:
   TEAM_NAME: ${{ inputs.team_name }}
   DESCRIPTION: ${{ inputs.description }}
   ORGANIZATION: ${{ vars.ORGANIZATION }}
+  MAINTAINER: ${{ inputs.maintainer }}
+  PARENT_TEAM: ${{ inputs.parent_team }}
 
 jobs:
   create-github-team:
@@ -55,6 +73,17 @@ jobs:
           application_id: ${{ vars.GH_APP_ID }}
           application_private_key: ${{ secrets.GH_APP_KEY }}
           organization: ${{ vars.ORGANIZATION }}
+      - name: Get Parent Team
+        if: inputs.parent_team != ''
+        id: get-parent-team
+        env:
+          GH_TOKEN: ${{ steps.get-workflow-token.outputs.token }}
+        run: |
+          JSON_RESULT=$(gh api \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /orgs/$ORGANIZATION/teams/${{ env.PARENT_TEAM }})
+          echo "id=$(echo $JSON_RESULT | jq '.id')" >> "$GITHUB_OUTPUT"
       - name: Create GitHub Team
         id: create-github-team
         env:
@@ -67,7 +96,8 @@ jobs:
             /orgs/$ORGANIZATION/teams \
             -f name='${{ env.TEAM_NAME }}' \
             -f description='${{ env.DESCRIPTION }}' \
-            -f permission='push' \
             -f notification_setting='notifications_enabled' \
+            -f "maintainers[]=${{ env.MAINTAINER }}" \
+            $([ "${{ steps.get-parent-team.outputs.id }}" != "" ] && echo '-F parent_team_id=${{ steps.get-parent-team.outputs.id }}') \
             -f privacy='closed')
           echo "team_url=$(echo $JSON_RESULT | jq .html_url)" >> "$GITHUB_OUTPUT"
