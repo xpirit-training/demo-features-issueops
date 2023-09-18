@@ -239,7 +239,7 @@ Any change to the structure will trigger the workflow and populate the issue tem
 
 Action adding a comment on a given issue.
 
-The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions to comment issues if the default `github.token` is not sufficient.
+The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions.
 
 Example usage:
 ```yaml
@@ -267,7 +267,7 @@ jobs:
 
 Action closing a given issue adding a comment.
 
-The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions to close issues if the default `github.token` is not sufficient.
+The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions.
 
 Example usage:
 ```yaml
@@ -298,13 +298,13 @@ jobs:
 
 Action retrieving the teams of an organization as JSON array.
 
-The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions to close issues if the default `github.token` is not sufficient.
+The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions.
 
 Example usage:
 ```yaml
 jobs:
   comment:
-    name: "Close a test issue"
+    name: "Get Teams Of Organization"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.3.0
@@ -360,7 +360,7 @@ jobs:
 
 Action adding topics to a repository
 
-The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions if the default `github.token` is not sufficient.
+The actions uses the [GitHub CLI](https://cli.github.com/) so provide a `token` with sufficient permissions.
 
 Example usage:
 ```yaml

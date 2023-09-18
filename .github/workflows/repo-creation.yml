@@ -24,7 +24,7 @@ on:
         required: true
         type: string
       topics:
-        description: "JSON Array of topics"
+        description: "Comma-separated list of topics"
         required: false
         type: string
     outputs:
@@ -63,7 +63,7 @@ on:
         type: string
         default: "terraform"
       topics:
-        description: "JSON Array of topics"
+        description: "Comma-separated list of topics"
         required: false
         type: string
 

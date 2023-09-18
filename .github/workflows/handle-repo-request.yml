@@ -58,9 +58,9 @@ jobs:
           echo "project_name=$NAME" >> "$GITHUB_OUTPUT"
           echo "team_slug=$TEAM" >> "$GITHUB_OUTPUT"
           echo "repo_name=${TEAM}-${NAME}" >> "$GITHUB_OUTPUT"
+          echo "topics=$TOPICS" >> "$GITHUB_OUTPUT"
           echo "visibility=$(echo $JSON | jq -r '.visibility.text')" >> "$GITHUB_OUTPUT"
           echo "language=$(echo $JSON | jq -r '.language.text')" >> "$GITHUB_OUTPUT"
-          echo "topics=$TOPICS" >> "$GITHUB_OUTPUT"
 
   handle:
     needs:
