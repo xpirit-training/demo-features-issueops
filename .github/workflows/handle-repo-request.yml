@@ -40,10 +40,12 @@ jobs:
           function github_name() {
             echo $1 \
             | tr '[:upper:]' '[:lower:]' \
-            | sed -r 's/[^a-z0-9ß-ü \-]*//g' \
-            | sed -e 's/ä/ae/g' -e 's/ö/oe/g' -e 's/ü/ue/g' -e 's/ß/ss/g' \
             | sed -r 's/[\t ]+/-/g' \
-            | sed -r 's/[-]+/-/g'
+            | sed -r 's/[^a-z0-9ß-ü\-]+/-/g' \
+            | sed -e 's/ä/ae/g' -e 's/ö/oe/g' -e 's/ü/ue/g' -e 's/ß/ss/g' \
+            | sed -r 's/[-]+/-/g' \
+            | sed -r 's/^[-]//' \
+            | sed -r 's/[-]$//'
           }
           function github_name_array() {
             array=""
