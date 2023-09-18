@@ -56,7 +56,7 @@ jobs:
       - name: Determine Changes
         id: change-detection
         run: |
-          if (git diff --quiet .github/ISSUE_TEMPLATE/repo-request.yml)
+          if (git diff --quiet $ISSUE_TEMPLATE_FILE)
           then 
             echo changed=false >> "$GITHUB_OUTPUT"
           else 
