@@ -85,7 +85,7 @@ jobs:
     name: "Cache Templates"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Cache Template Files
         id: cache-files
         uses: actions/cache@v3

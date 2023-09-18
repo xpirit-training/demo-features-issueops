@@ -10,7 +10,7 @@ jobs:
     env:
       USER: ${{ github.event.issue.user.login }}
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Add Comment To Issue
         uses: ./.github/actions/comment-issue
         with:
@@ -22,7 +22,7 @@ jobs:
     outputs:
       repo_name: ${{ steps.repo-name.outputs.repo_name }}
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Parse Issue Form into JSON
         id: parse
         uses: zentered/issue-forms-body-parser@v2.0.0
@@ -65,7 +65,7 @@ jobs:
     env:
       USER: ${{ github.event.issue.user.login }}
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Add Comment To Issue
         uses: ./.github/actions/comment-issue
         with:
@@ -82,7 +82,7 @@ jobs:
     env:
       USER: ${{ github.event.issue.user.login }}
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Close Issue With Comment
         uses: ./.github/actions/close-issue
         with:

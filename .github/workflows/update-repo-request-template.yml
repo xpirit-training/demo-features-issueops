@@ -13,13 +13,14 @@ permissions:
   contents: write
 
 env:
-  ISSUE_TEMPLATE_FILE: .github/ISSUE_TEMPLATE/repo-request.yml
+  REPO_REQUEST_FILE: .github/ISSUE_TEMPLATE/repo-request.yml
+  REPO_REQUEST_TEMPLATE_FILE: .github/ISSUE_TEMPLATE/repo-request-template.yml
 
 jobs:
   update-org:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Get Token
         id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
@@ -38,10 +39,10 @@ jobs:
           JSON: ${{ steps.get-teams.outputs.json }}
         run: |
           TEAMS=$( echo $JSON \
-            | jq -r '.[] | "- " + .name + (.description | if . == "" then . else " - " + . end )' \
+            | jq -r '.[] | "- " + .name + (.description | if . == "" then . else " - " + . end)' \
             | sort ) \
             yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Team") | .attributes.options) |=env(TEAMS)' \
-            $ISSUE_TEMPLATE_FILE
+            $REPO_REQUEST_FILE
       - name: Update Languages
         run: |
           LANGUAGES=$( find ./templates/languages \
@@ -52,11 +53,11 @@ jobs:
             -c 'echo - $(basename "$1")' sh {} \; \
             | sort ) \
             yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Language") | .attributes.options) |=env(LANGUAGES)' \
-            $ISSUE_TEMPLATE_FILE
+            $REPO_REQUEST_FILE
       - name: Determine Changes
         id: change-detection
         run: |
-          if (git diff --quiet $ISSUE_TEMPLATE_FILE)
+          if (git diff --quiet $REPO_REQUEST_FILE)
           then 
             echo changed=false >> "$GITHUB_OUTPUT"
           else 
@@ -64,12 +65,12 @@ jobs:
           fi
       - name: Display File
         if: ${{ steps.change-detection.outputs.changed == 'true' }}
-        run: cat $ISSUE_TEMPLATE_FILE
+        run: cat $REPO_REQUEST_FILE
       - name: "Yamllint"
         if: ${{ steps.change-detection.outputs.changed == 'true' }}
         uses: karancode/yamllint-github-action@master
         with:
-          yamllint_file_or_dir: ${{ env.ISSUE_TEMPLATE_FILE }}
+          yamllint_file_or_dir: ${{ env.REPO_REQUEST_FILE }}
           yamllint_strict: true
       - name: Commit Changes
         if: ${{ steps.change-detection.outputs.changed == 'true' }}
@@ -78,6 +79,6 @@ jobs:
         run: |
           git config --global user.name '${{ vars.CI_COMMIT_USER }}'
           git config --global user.email '${{ vars.CI_COMMIT_USER_MAIL }}'
-          git add $ISSUE_TEMPLATE_FILE
+          git add $REPO_REQUEST_FILE
           git commit -m "$CI_COMMIT_MESSAGE"
           git push

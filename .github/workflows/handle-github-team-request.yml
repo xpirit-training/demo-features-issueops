@@ -11,7 +11,7 @@ jobs:
     name: "Notify Request Issue"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/comment-issue
         with:
           message: "@${USER} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
@@ -25,7 +25,7 @@ jobs:
       maintainer: ${{ steps.attributes.outputs.maintainer }}
       parent_team: ${{ steps.attributes.outputs.parent_team }}
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Parse Issue Form into JSON
         id: parse
         uses: zentered/issue-forms-body-parser@v2.0.0
@@ -61,7 +61,7 @@ jobs:
     env:
       TEAM_URL: ${{ needs.handle.outputs.team_url }}
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/comment-issue
         with:
           message: "@${USER} the team provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details"
@@ -77,7 +77,7 @@ jobs:
     env:
       TEAM_URL: ${{ needs.handle.outputs.team_url }}
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/close-issue
         with:
           message: "@${USER} your team was created and is now accessible here: $TEAM_URL"

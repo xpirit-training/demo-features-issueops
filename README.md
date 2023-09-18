@@ -248,7 +248,7 @@ jobs:
     name: "Create a test comment"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Get Token From GitHub App
         id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
@@ -276,7 +276,7 @@ jobs:
     name: "Close a test issue"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Get Token From GitHub App
         id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
@@ -307,7 +307,7 @@ jobs:
     name: "Get Teams Of Organization"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Get Token From GitHub App
         id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
@@ -337,7 +337,7 @@ jobs:
     name: "Grant Team Permission"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Get Token From GitHub App
         id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
@@ -369,7 +369,7 @@ jobs:
     name: "Add Topics To Repository"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.3.0
+      - uses: actions/checkout@v4
       - name: Get Token From GitHub App
         id: get-workflow-token
         uses: peter-murray/workflow-application-token-action@v2
